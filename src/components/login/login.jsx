@@ -1,61 +1,96 @@
 import React from 'react';
-import axios from 'axios';
 import { rootUrl } from '../../App';
+import { Link, Redirect } from 'react-router-dom';
+import { ErrorMessage, Field, Form, Formik } from 'formik';
 
 export class Login extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            fields: {
-                email: '',
-                password: ''
-            }
+            redirect: false,
+            showError: false,
+            errorInfo: ""
         }
     }
 
-    changeHandler = (e) => {
-        this.setState((prevState) => ({fields:{
-            ...prevState.fields,
-            [e.target.name]: e.target.value
-        }}));
-
-    }
-
-    loginHandler = async (e) => {
-        console.log(this.state.fields);
-        console.log(rootUrl + "/auth/login");
-        axios.post(rootUrl + "/auth/login", {
-            username: this.state.fields.email,
-            password: this.state.fields.password})
-        .then((response) => {
-            console.log(response.data);
-        }).catch((error) => {
-            console.log(error);
-        });
-  
-    }
-
     render() {
-        const {email, passowrd} = this.state.fields;
-        return <div className="base-container" ref={this.props.containerRef}>
-            <div className="header">Logowanie</div>
-            <div className="content">
-                <div className="image">
-                </div>
-                <div className="form">
-                    <div className="form-group">
-                        <label htmlFor="email">Email</label>
-                        <input type="text" name="email" placeholder="email" onChange={this.changeHandler}></input>
+        const {showError, errorInfo, redirect} = this.state;
+        if(redirect){
+            return <><Redirect to="/user/home" />{this.setState({redirect: false})}</>
+        }
+        return <>
+            <section id="cover" class="min-vh-100">
+                <div id="cover-caption">
+                    <div class="container">
+                        <div class="row text-white">
+                            <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 mx-auto text-center form p-4">
+                                <h1 class="display-4 py-2 text-truncate">Logowanie</h1>
+                                <div class="px-2">
+                                <Formik
+                                    initialValues={{ email: '', password: '' }}
+                                    validate={values => {
+                                        const errors = {};
+                                        if (!values.email) {
+                                            errors.email = 'Adres email jest wymagany';
+                                        } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
+                                            errors.email = 'Podano zły format adresu e-mail';
+                                        }
+                                        if(!values.password){
+                                            errors.passowrd = "Musisz podać hasło"
+                                        } else if(values.password.length < 5){
+                                            errors.password = "Hasło musi posiadać przynajmniej 6 znaków"
+                                        }
+                                        return errors;
+                                    }}
+                                    onSubmit={async (values, { setSubmitting }) => {
+                                        const payload = {username: values.email, password: values.password};
+                                        const response = await fetch(rootUrl + "/auth/login", {method: "POST", headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+                                        if(response){
+                                            const bodyJSON = await response.json();
+                                            if(response.status === 401){ //Brak autoryzacji, zly login lub haslo
+                                                this.setState({showError: true, errorInfo: "Podano niepoprawny login lub hasło"});
+                                            } else if(response.status === 201){ //Pomyslnie zalogowano
+                                                localStorage.setItem("access_token", bodyJSON.access_token);
+                                                this.setState({redirect: true});
+                                            }
+                                            setSubmitting(false);
+                                        }
+                                    }}
+                                    >
+                                    {({ isSubmitting }) => (
+                                        <Form>
+                                            <div className="form-group row">
+                                                <label for="email text-center">Email</label>
+                                                <Field type="email" class="form-control" name="email" />
+                                                <ErrorMessage name="email" component="div" />
+                                            </div>
+                                            <div className="form-group row">
+                                                <label for="password">Hasło</label>
+                                                <Field type="password" class="form-control" name="password" />
+                                                <ErrorMessage name="password" component="div" />
+                                            </div>
+                                            <div className="form-group row">
+                                            {showError && <div class="alert alert-danger" role="alert">
+                                                {errorInfo}
+                                            </div>}
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-6">
+                                                    <button type="submit" class="btn btn-primary btn-lg" disabled={isSubmitting}>Zaloguj</button>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <Link to="/register"><button type="submit" class="btn btn-primary btn-lg">Rejestracja</button></Link>
+                                                </div>
+                                            </div>
+                                        </Form>
+                                    )}
+                                    </Formik>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="passowrd">Hasło</label>
-                        <input type="password" name="password" placeholder="hasło" onChange={this.changeHandler}></input>
-                    </div>
                 </div>
-            </div>
-            <div className="footer">
-                <button type="button" className="btn" onClick={this.loginHandler}>Zaloguj</button>
-            </div>
-        </div>
+            </section>
+        </>
     }
 }
