@@ -2,6 +2,7 @@ import React from 'react';
 import { rootUrl } from '../../App';
 import { Link, Redirect } from 'react-router-dom';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
+import store from '../../store';
 
 export class Login extends React.Component {
     constructor(props){
@@ -13,9 +14,14 @@ export class Login extends React.Component {
         }
     }
 
+    componentDidMount(){
+        console.error("STATE", store.getState());
+    }
+
     render() {
         const {showError, errorInfo, redirect} = this.state;
         if(redirect){
+            console.error("VVVVVVVVVVVVVV", store.getState())
             return <><Redirect to="/user/home" />{this.setState({redirect: false})}</>
         }
         return <>
@@ -51,6 +57,7 @@ export class Login extends React.Component {
                                                 this.setState({showError: true, errorInfo: "Podano niepoprawny login lub hasło"});
                                             } else if(response.status === 201){ //Pomyslnie zalogowano
                                                 localStorage.setItem("access_token", bodyJSON.access_token);
+                                                store.dispatch({type: "GET_USER_INFO"});
                                                 this.setState({redirect: true});
                                             }
                                             setSubmitting(false);
