@@ -4,22 +4,17 @@ import "./App.scss";
 
 import React from 'react';
 import { Switch, Route, BrowserRouter } from "react-router-dom";
+import { Drivers } from "./components/drivers";
 
 
 
 class App extends React.Component {
     constructor(props){
       super(props);
-      this.state = {
-        isLogginActive: true
-      }
     }
 
     render() {
       return <>
-	  		
-
-      <BrowserRouter>
         <Switch>
         	<Route exact path="/">
             	<Login />
@@ -29,15 +24,17 @@ class App extends React.Component {
           	</Route>
 			<Route path={["/user", "/admin"]}>
 				<Navbar />
-			</Route>
-			<Route path = "/user/home">
-				<></>
-			</Route>
-			<Route path = "/admin/home">
-				<></>
+				<Route path = "/admin/home">
+					<>AADMIN</>
+				</Route>
+				<Route path = "/user/home">
+					<></>
+				</Route>
+				<Route path = "/user/drivers">
+					<Drivers />
+				</Route>
 			</Route>
         </Switch>
-      </BrowserRouter>
       </>
     }
 }

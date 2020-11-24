@@ -1,17 +1,14 @@
 import React from 'react';
-import { Link, Redirect } from 'react-router-dom';
+import { Link,  } from 'react-router-dom';
 import { connect } from 'react-redux';
-import store from '../../store';
-import { fetchUserData } from "../../operations"
 import { checkUserIsLogged } from '../../utils/utils';
 import { rootUrl } from '../../App';
+import history from '../../history';
+import { fetchUserData } from '../../operations/user-operations';
 
 export class Navbar extends React.Component {
     constructor(props){
         super(props);
-        this.state = {
-            redirect: false,
-        }
     }
 
     async componentDidMount(){
@@ -19,17 +16,15 @@ export class Navbar extends React.Component {
         if(checkUserIsLogged()){
             const token = localStorage.getItem("access_token");
             this.props.fetchUserData(rootUrl + "/auth/user", {method: "GET", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}});
+        } else {
+            history.push("/");
         }
     }
 
 
 
     render() {
-        const { redirect } = this.state;
         const { user } = this.props;
-        if(redirect){
-            return <><Redirect to="/user/home" />{this.setState({redirect: false})}</>
-        }
         return <>
             <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
                 <Link className="navbar-brand" to="/">Qtrack</Link>
@@ -47,7 +42,9 @@ export class Navbar extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        user: state.user
+        user: state.user,
+        userIsLoading: state.userIsLoading,
+        userHaveError: state.userHaveError
     }
 }
 

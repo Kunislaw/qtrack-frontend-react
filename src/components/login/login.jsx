@@ -3,6 +3,8 @@ import { rootUrl } from '../../App';
 import { Link, Redirect } from 'react-router-dom';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import store from '../../store';
+import { connect } from 'react-redux';
+import { userLoginRequest, userRegisterRequest } from '../../operations/user-operations';
 
 export class Login extends React.Component {
     constructor(props){
@@ -19,12 +21,9 @@ export class Login extends React.Component {
     }
 
     render() {
-        const {showError, errorInfo, redirect} = this.state;
-        if(redirect){
-            console.error("VVVVVVVVVVVVVV", store.getState())
-            return <><Redirect to="/user/home" />{this.setState({redirect: false})}</>
-        }
+        const { userLoggingError } = this.props;
         return <>
+            {JSON.stringify(this.props)}
             <section id="cover" class="min-vh-100">
                 <div id="cover-caption">
                     <div class="container">
@@ -50,18 +49,7 @@ export class Login extends React.Component {
                                     }}
                                     onSubmit={async (values, { setSubmitting }) => {
                                         const payload = {username: values.email, password: values.password};
-                                        const response = await fetch(rootUrl + "/auth/login", {method: "POST", headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-                                        if(response){
-                                            const bodyJSON = await response.json();
-                                            if(response.status === 401){ //Brak autoryzacji, zly login lub haslo
-                                                this.setState({showError: true, errorInfo: "Podano niepoprawny login lub hasło"});
-                                            } else if(response.status === 201){ //Pomyslnie zalogowano
-                                                localStorage.setItem("access_token", bodyJSON.access_token);
-                                                store.dispatch({type: "GET_USER_INFO"});
-                                                this.setState({redirect: true});
-                                            }
-                                            setSubmitting(false);
-                                        }
+                                        this.props.userLoginRequest(rootUrl + "/auth/login", payload);
                                     }}
                                     >
                                     {({ isSubmitting }) => (
@@ -77,8 +65,8 @@ export class Login extends React.Component {
                                                 <ErrorMessage name="password" component="div" />
                                             </div>
                                             <div className="form-group row">
-                                            {showError && <div class="alert alert-danger" role="alert">
-                                                {errorInfo}
+                                            {userLoggingError && <div class="alert alert-danger" role="alert">
+                                                {userLoggingError === 401 && "Błędny login lub hasło"}
                                             </div>}
                                             </div>
                                             <div class="form-group row">
@@ -101,3 +89,18 @@ export class Login extends React.Component {
         </>
     }
 }
+
+const mapStateToProps = (state) => {
+    return {
+        userLoggingError: state.userLoggingError
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        userLoginRequest: (url, body) => dispatch(userLoginRequest(url, body))
+    }
+}
+
+
+Login = connect(mapStateToProps, mapDispatchToProps)(Login);

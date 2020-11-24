@@ -2,22 +2,17 @@ import React from 'react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { rootUrl } from '../../App';
 import { Link, Redirect } from 'react-router-dom';
+import { userLoginRequest, userRegisterRequest } from '../../operations/user-operations';
+import { connect } from 'react-redux';
 export class Register extends React.Component {
     constructor(props){
         super(props);
-        this.state = {
-            redirect: false,
-            showErros: false,
-            errorInfo: ""
-        }
     }
 
     render() {
-        const { redirect, showErros, errorInfo } = this.state;
-        if(redirect){
-            return <><Redirect to="/" />{this.setState({redirect: false})}</>
-        }
+        const { userRegisterError } = this.props;
         return <>
+            {JSON.stringify(this.props)}
             <section id="cover" class="min-vh-100">
                 <div id="cover-caption">
                     <div class="container">
@@ -70,21 +65,9 @@ export class Register extends React.Component {
                                         return errors;
                                     }}
                                     onSubmit={(values, { setSubmitting }) => {
-                                    
+                                        this.props.userRegisterRequest(rootUrl + "/auth/register", values);
                                         console.error("VALUES", values);
-                                        fetch(rootUrl + "/auth/register", {method: "POST", headers:{'Content-Type':'application/json'}, body: JSON.stringify(values)}).then((response) => {
-                                            console.error("RESPONSE", response);
-                                            if(response.status === 404){ //Brak clientId
-                                                this.setState({showErros: true, errorInfo: "Nie znaleziono takiego identyfikatora klienta"});
-                                            } else if(response.status === 201){ //Pomyslnie utworzono usera
-                                                this.setState({redirect: true});
-                                            } else if(response.status === 409){ //Uzytkownik z takim adresem email juz istnieje
-                                                this.setState({showErros: true, errorInfo: "Podany adres email jest już użyty"});
-                                            }
-                                            setSubmitting(false);
-                                        }).catch((error) => {
-                                            console.error("LOGIN", error);
-                                        });
+                                        setSubmitting(false);
                                     }}
                                     >
                                     {({ isSubmitting }) => (
@@ -120,13 +103,14 @@ export class Register extends React.Component {
                                                 <ErrorMessage name="repeatPassword" component="div" />
                                             </div>
                                             <div className="form-group row">
-                                            {showErros && <div class="alert alert-danger" role="alert">
-                                                {errorInfo}
+                                            {userRegisterError && <div class="alert alert-danger" role="alert">
+                                                {userRegisterError === 404 && "Nie znaleziono podanego identyfikatora klienta"}
+                                                {userRegisterError === 409 && "Użytkownik z takim samym adresem e-mail już istnieje"}
                                             </div>}
                                             </div>
                                             <div class="form-group row">
                                                 <div class="col-md-6">
-                                                    <button type="submit" class="btn btn-primary btn-lg" disabled={isSubmitting}>Zaloguj</button>
+                                                    <button type="submit" class="btn btn-primary btn-lg" disabled={isSubmitting}>Zarejestruj</button>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <Link to="/"><button type="submit" class="btn btn-primary btn-lg">Logowanie</button></Link>
@@ -144,3 +128,18 @@ export class Register extends React.Component {
         </>
     }
 }
+
+const mapStateToProps = (state) => {
+    return {
+        userRegisterError: state.userRegisterError
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        userRegisterRequest: (url, body) => dispatch(userRegisterRequest(url, body))
+    }
+}
+
+
+Register = connect(mapStateToProps, mapDispatchToProps)(Register);
