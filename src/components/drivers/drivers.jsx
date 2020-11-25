@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { checkUserIsLogged } from '../../utils/utils';
 import { rootUrl } from '../../App';
 import history from '../../history';
-import { addUserDriver, fetchUserDrivers } from '../../operations/user-drivers-operations';
+import { addUserDriver, deleteUserDriver, editUserDriver, fetchUserDrivers } from '../../operations/user-drivers-operations';
 import { Modal, Button } from "react-bootstrap";
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 
@@ -97,7 +97,7 @@ export class Drivers extends React.Component {
                                     }
                                     if (!values.lastName) {
                                         errors.lastName = 'Podaj nazwisko';
-                                    } else if (values.lastName.length < 2) {
+                                    } else if (values?.lastName?.length < 2) {
                                         errors.lastName = 'Nazwisko musi mieć chociaż 2 znaki';
                                     }
 
@@ -106,19 +106,27 @@ export class Drivers extends React.Component {
                                     }
 
                                     if (!values.position) {
-                                        errors.position = 'Podaj Stanowisko';
-                                    } else if (values.lastName.length < 2) {
+                                        errors.position = 'Podaj stanowisko';
+                                    } else if (values.position.length < 2) {
                                         errors.position = 'Stanowisko musi mieć chociaż 2 znaki';
                                     }
                                 }
                                 return errors;
                             }}
                             onSubmit={async (values, { setSubmitting }) => {
-                                console.error("VALUEESS DRIVERS", values);
-                                const payload = {...values, clientId: this.props.user.clientId};
-                                this.props.addUserDriver(rootUrl + "/drivers/create", payload);
-                                //const payload = {username: values.email, password: values.password};
-                                //this.props.userLoginRequest(rootUrl + "/auth/login", payload);
+                                console.error("VALUEESS DRIVERS", values, selectedItem);
+                                if(selectedItem.add){
+                                    const payload = {...values, clientId: this.props.user.clientId};
+                                    this.props.addUserDriver(rootUrl + "/drivers/create", payload);
+                                } else if(selectedItem.edit){
+                                    const payload = {...selectedItem, ...values};
+                                    console.error("EDIT PAYLOAD", payload);
+                                    this.props.editUserDriver(rootUrl + "/drivers/edit", payload);                         
+                                } else if (selectedItem.delete){
+                                    this.props.deleteUserDriver(rootUrl + "/drivers/delete/" + selectedItem.id, selectedItem);
+                                }
+                                this.setState({show: false});
+      
                             }}
                             >
                             {({ isSubmitting }) => (
@@ -177,7 +185,9 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         fetchUserDrivers: (url, options) => dispatch(fetchUserDrivers(url, options)),
-        addUserDriver: (url, body) => dispatch(addUserDriver(url, body))
+        addUserDriver: (url, body) => dispatch(addUserDriver(url, body)),
+        editUserDriver: (url, body) => dispatch(editUserDriver(url, body)),
+        deleteUserDriver: (url, item) => dispatch(deleteUserDriver(url, item))
     }
 }
 

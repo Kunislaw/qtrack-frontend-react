@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link,  } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { checkUserIsLogged } from '../../utils/utils';
+import { checkUserIsLogged, historyPush } from '../../utils/utils';
 import { rootUrl } from '../../App';
 import history from '../../history';
 import { fetchUserData } from '../../operations/user-operations';
@@ -29,9 +29,10 @@ export class Navbar extends React.Component {
             <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
                 <Link className="navbar-brand" to="/">Qtrack</Link>
                 <ul class="navbar-nav ml-auto">
-                    {user.role === "U" && <li><Link className="nav-link" to="/user/home">Ogólne</Link></li>}
-                    {user.role === "U" && <li><Link className="nav-link" to="/user/drivers">Kierowcy</Link></li>}
-                    {user.role === "U" && <li><Link className="nav-link" to="/user/vehicles">Pojazdy</Link></li>}
+                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/home")}>Ogólne</a></li>}
+                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/drivers")}>Kierowcy</a></li>}
+                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/vehicles")}>Pojazdy</a></li>}
+                    <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/logout")}>Wyloguj</a></li>
                 </ul>
             </nav>
         </>

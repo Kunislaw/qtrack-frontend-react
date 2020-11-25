@@ -74,18 +74,20 @@ export const addUserDriver = (url, body) => {
     }
 }
 
-export const editUserDriver = (url, options) => {
+export const editUserDriver = (url, body) => {
     return (dispatch) => {
-        fetch(url, options).then((response) => {
-            if(response.status !== 201){
+        fetch(url, {method: "PUT", headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}).then((response) => {
+            console.error("XDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", response);
+            if(response.status !== 200){
                 throw response.status
             }
             return response.json();
         })
         .then((bodyJson) => {
-            dispatch(userDriversDataSuccess(bodyJson))
+            dispatch(editUserDriverSuccess(bodyJson))
         })
         .catch((error) => {
+            console.error("ERRRRRRRRRRRRRRRRRR", error);
             history.push("/");
             localStorage.removeItem("access_token");
             dispatch(userDriversHaveError(true))
@@ -93,16 +95,16 @@ export const editUserDriver = (url, options) => {
     }
 }
 
-export const deleteUserDriver = (url, options) => {
+export const deleteUserDriver = (url, item) => {
     return (dispatch) => {
-        fetch(url, options).then((response) => {
+        fetch(url, {method: "DELETE", headers:{'Content-Type':'application/json'}}).then((response) => {
             if(response.status !== 200){
                 throw response.status
             }
             return response.json();
         })
         .then((bodyJson) => {
-            dispatch(userDriversDataSuccess(bodyJson))
+            dispatch(deleteUserDriverSuccess(item))
         })
         .catch((error) => {
             history.push("/");
