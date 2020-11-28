@@ -4,16 +4,20 @@ import { connect } from 'react-redux';
 import { checkUserIsLogged } from '../../utils/utils';
 import { rootUrl } from '../../App';
 import history from '../../history';
-import { addUserDriver, deleteUserDriver, editUserDriver, fetchUserDrivers } from '../../operations/user-drivers-operations';
 import { Modal, Button } from "react-bootstrap";
 import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight, faEdit, faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { addClientDriver, editClientDriver, fetchClientDrivers, deleteClientDriver } from '../../operations/client-drivers-operations';
 
 export class Drivers extends React.Component {
     constructor(props){
         super(props);
         this.state = {
             show: false,
-            selectedItem: null
+            selectedItem: null,
+            currentPage: 0,
+            entriesPerPage: 15,
         }
     }
 
@@ -25,10 +29,23 @@ export class Drivers extends React.Component {
         this.setState((prevState) => ({show: false}));
     };
 
+    previousPage = () => {
+        if(this.state.currentPage > 0){
+            this.setState((prevState) => ({currentPage: prevState.currentPage - 1}));
+        }
+    }
+
+    nextPage = () => {
+        if(((this.state.currentPage+1)*this.state.entriesPerPage) < this.props.driversState.drivers.length){
+            this.setState((prevState) => ({currentPage: prevState.currentPage + 1}));
+        }
+    };
+
+
     async componentDidMount(){
         if(checkUserIsLogged()){
             const token = localStorage.getItem("access_token");
-            this.props.fetchUserDrivers(rootUrl + "/drivers/client/" + this.props.user.clientId, {method: "GET", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}});
+            this.props.fetchClientDrivers(token, this.props.user.clientId);
         } else {
             history.push("/");
         }
@@ -37,41 +54,71 @@ export class Drivers extends React.Component {
 
 
     render() {
-        const { show, selectedItem } = this.state;
-        const { drivers, user } = this.props;
+        const { show, selectedItem, currentPage, entriesPerPage } = this.state;
+        const { driversState, user } = this.props;
+        const driversOnPage = driversState.drivers.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
+        const howManyEmptyRowsAdd = entriesPerPage - driversOnPage.length;
         return <>
-                <button type="button" className="btn btn-primary" onClick={() => this.selectOption({add: true})}>Dodaj</button>
-                <table class="table table-hover table-dark">
-                <thead>
-                    <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Imie</th>
-                    <th scope="col">Nazwisko</th>
-                    <th scope="col">Telefon</th>
-                    <th scope="col">Stanowisko</th>
-                    <th scope="col">Auto</th>
-                    <th scope="col">Edytuj</th>
-                    <th scope="col">Usuń</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {drivers.map((item, index) => {
-                        return <>
+                <div className="container-md minHeight">
+                    <div className="row pagination">
+                        <div className="col-md-1 centering text-center">
+                            <button type="button" className="btn btn-success" onClick={() => this.selectOption({add: true})}><FontAwesomeIcon icon={faPlus} /></button>
+                        </div>
+                        <div className="col-md-3 offset-md-8 centering text-center">
+                            <button type="button" className="btn btn-primary" onClick={this.previousPage}><FontAwesomeIcon icon={faChevronLeft} /></button>
+                             <span className="padding-page-information">Strona {(currentPage + 1)}/{Math.ceil(driversState.drivers.length/entriesPerPage)}</span>
+                            <button type="button" className="btn btn-primary" onClick={this.nextPage}><FontAwesomeIcon icon={faChevronRight} /></button>
+                        </div>    
+                    </div>
+                    <div className="row">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-dark table-no-bottom-margin">
+                            <thead class ="text-center">
                                 <tr>
-                                <th scope="row">{index + 1}</th>
-                                <td>{item.firstName}</td>
-                                <td>{item.lastName}</td>
-                                <td>{item.phone}</td>
-                                <td>{item.position}</td>
-                                <td>{item?.vehicle ? item.vehicle : "Brak"}</td>
-                                <td><button type="button" className="btn btn-primary" onClick={() => this.selectOption({...item, edit: true})}>Edytuj</button></td>
-                                <td><button type="button" className="btn btn-primary" onClick={() => this.selectOption({...item, delete: true})}>Usuń</button></td>
+                                <th scope="col">#</th>
+                                <th scope="col">Imie</th>
+                                <th scope="col">Nazwisko</th>
+                                <th scope="col">Telefon</th>
+                                <th scope="col">Stanowisko</th>
+                                <th scope="col">Auto</th>
+                                <th scope="col">Edytuj</th>
+                                <th scope="col">Usuń</th>
                                 </tr>
-                        </>
-                    })}
-                </tbody>
-                </table>
-
+                            </thead>
+                            <tbody>
+                                {driversOnPage.map((item, index) => {
+                                    return <>
+                                            <tr className="text-center">
+                                            <th scope="row">{index + 1 + ((currentPage*entriesPerPage))}</th>
+                                            <td>{item.firstName}</td>
+                                            <td>{item.lastName}</td>
+                                            <td>{item.phone}</td>
+                                            <td>{item.position}</td>
+                                            <td>{item?.vehicle ? item.vehicle : "Brak"}</td>
+                                            <td><button type="button" className="btn btn-secondary" onClick={() => this.selectOption({...item, edit: true})}><FontAwesomeIcon icon={faEdit} /></button></td>
+                                            <td><button type="button" className="btn btn-danger" onClick={() => this.selectOption({...item, delete: true})}><FontAwesomeIcon icon={faTrashAlt} /></button></td>
+                                            </tr>
+                                    </>
+                                })}
+                                {new Array(howManyEmptyRowsAdd).fill(0).map(() => {
+                                    return <>
+                                    <tr>    
+                                        <th>&nbsp;</th>
+                                        <th>&nbsp;</th>
+                                        <th>&nbsp;</th>
+                                        <th>&nbsp;</th>
+                                        <th>&nbsp;</th>
+                                        <th>&nbsp;</th>
+                                        <th>&nbsp;</th>
+                                        <th>&nbsp;</th>
+                                    </tr>
+                                    </>
+                                })}
+                            </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
                 <Modal show={show} onHide={this.handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>
@@ -87,7 +134,7 @@ export class Drivers extends React.Component {
                                 lastName: selectedItem ? selectedItem.lastName : '',
                                 phone: selectedItem ? selectedItem.phone : '',
                                 position: selectedItem ? selectedItem.position : ''}}
-                            validate={values => {
+                                validate={values => {
                                 const errors = {};
                                 if(selectedItem.add || selectedItem.edit){
                                     if (!values.firstName) {
@@ -115,18 +162,21 @@ export class Drivers extends React.Component {
                             }}
                             onSubmit={async (values, { setSubmitting }) => {
                                 console.error("VALUEESS DRIVERS", values, selectedItem);
-                                if(selectedItem.add){
-                                    const payload = {...values, clientId: this.props.user.clientId};
-                                    this.props.addUserDriver(rootUrl + "/drivers/create", payload);
-                                } else if(selectedItem.edit){
-                                    const payload = {...selectedItem, ...values};
-                                    console.error("EDIT PAYLOAD", payload);
-                                    this.props.editUserDriver(rootUrl + "/drivers/edit", payload);                         
-                                } else if (selectedItem.delete){
-                                    this.props.deleteUserDriver(rootUrl + "/drivers/delete/" + selectedItem.id, selectedItem);
+                                if(checkUserIsLogged()){
+                                    const token = localStorage.getItem("access_token");
+                                    if(selectedItem.add){
+                                        const payload = {...values, clientId: user.clientId};
+                                        this.props.addClientDriver(token, payload);
+                                    } else if(selectedItem.edit){
+                                        const payload = {...selectedItem, ...values};
+                                        this.props.editClientDriver(token, payload);                         
+                                    } else if (selectedItem.delete){
+                                        this.props.deleteClientDriver(token, selectedItem.id);
+                                    }
+                                    this.setState({show: false});
+                                } else {
+                                    history.push("/");
                                 }
-                                this.setState({show: false});
-      
                             }}
                             >
                             {({ isSubmitting }) => (
@@ -176,18 +226,16 @@ export class Drivers extends React.Component {
 const mapStateToProps = (state) => {
     return {
         user: state.user,
-        drivers: state.drivers,
-        driversHaveError: state.driversHaveError,
-        driversAreLoading: state.driversAreLoading
+        driversState: state.driversState
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        fetchUserDrivers: (url, options) => dispatch(fetchUserDrivers(url, options)),
-        addUserDriver: (url, body) => dispatch(addUserDriver(url, body)),
-        editUserDriver: (url, body) => dispatch(editUserDriver(url, body)),
-        deleteUserDriver: (url, item) => dispatch(deleteUserDriver(url, item))
+        fetchClientDrivers: (clientId, token) => dispatch(fetchClientDrivers(clientId, token)),
+        addClientDriver: (token, driver) => dispatch(addClientDriver(token, driver)),
+        editClientDriver: (token, driver) => dispatch(editClientDriver(token, driver)),
+        deleteClientDriver: (token, driverId) => dispatch(deleteClientDriver(token, driverId))
     }
 }
 

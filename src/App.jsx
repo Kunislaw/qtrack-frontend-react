@@ -5,6 +5,7 @@ import "./App.scss";
 import React from 'react';
 import { Switch, Route, BrowserRouter } from "react-router-dom";
 import { Drivers } from "./components/drivers";
+import { Footer } from "./components/footer/index";
 
 
 
@@ -33,6 +34,7 @@ class App extends React.Component {
 				<Route path = "/user/drivers">
 					<Drivers />
 				</Route>
+				<Footer />
 			</Route>
         </Switch>
       </>

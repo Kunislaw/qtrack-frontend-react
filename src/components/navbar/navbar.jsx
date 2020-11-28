@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link,  } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { checkUserIsLogged, historyPush } from '../../utils/utils';
 import { rootUrl } from '../../App';
 import history from '../../history';
 import { fetchUserData } from '../../operations/user-operations';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faSignOutAlt, faTruck, faUser, faWheelchair } from '@fortawesome/free-solid-svg-icons';
 
 export class Navbar extends React.Component {
     constructor(props){
@@ -26,13 +27,13 @@ export class Navbar extends React.Component {
     render() {
         const { user } = this.props;
         return <>
-            <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-                <Link className="navbar-brand" to="/">Qtrack</Link>
+            <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+                <a className="navbar-brand" href="#" onClick={(e) => historyPush(e, "/")}>Qtrack</a>
                 <ul class="navbar-nav ml-auto">
-                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/home")}>Ogólne</a></li>}
-                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/drivers")}>Kierowcy</a></li>}
-                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/vehicles")}>Pojazdy</a></li>}
-                    <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/logout")}>Wyloguj</a></li>
+                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/home")}><FontAwesomeIcon icon={faHome}/>Ogólne</a></li>}
+                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/drivers")}><FontAwesomeIcon icon={faUser}/>Kierowcy</a></li>}
+                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/vehicles")}><FontAwesomeIcon icon={faTruck}/>Pojazdy</a></li>}
+                    <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/logout")}><FontAwesomeIcon icon={faSignOutAlt}/>Wyloguj</a></li>
                 </ul>
             </nav>
         </>

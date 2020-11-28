@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import { userDriversHaveErrorReducer, userDriversReducer } from './reducers/user-drivers.reducer';
+import { clientDriversReducer } from './reducers/client-drivers.reducer';
 import { userHaveErrorReducer, userIsLoadingReducer, userLoggingErrorReducer, userReducer, userRegisterErrorReducer } from './reducers/user-reducer';
 
 
@@ -9,8 +9,7 @@ const rootReducer = combineReducers({
     userHaveError: userHaveErrorReducer,
     userLoggingError: userLoggingErrorReducer,
     userRegisterError: userRegisterErrorReducer,
-    drivers: userDriversReducer,
-    driversHaveError: userDriversHaveErrorReducer,
+    driversState: clientDriversReducer
 });
 
 export default rootReducer;
