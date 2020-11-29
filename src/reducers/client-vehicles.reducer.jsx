@@ -1,4 +1,4 @@
-const INITIAL_STATE_VEHICLE_REDUCER = {
+const INITIAL_STATE_CLIENT_VEHICLES_REDUCER = {
     vehicles: [],
     isFetching: false,
     error: {
@@ -7,7 +7,7 @@ const INITIAL_STATE_VEHICLE_REDUCER = {
         message: null
     }
 };
-export const clientVehiclesReducer = (state = INITIAL_STATE_VEHICLE_REDUCER, action) => {
+export const clientVehiclesReducer = (state = INITIAL_STATE_CLIENT_VEHICLES_REDUCER, action) => {
     switch(action.type) {
         case "SET_ERROR_CLIENT_VEHICLES":
             return {...state, error: {operation: action.operation, errorCode: action.errorCode, message: action.message}};

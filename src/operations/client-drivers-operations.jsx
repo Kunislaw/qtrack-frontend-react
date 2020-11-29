@@ -54,6 +54,7 @@ export const fetchClientDrivers = (token, clientId) => {
             const response = await fetch(rootUrl + "/drivers/client/" + clientId, {method: "GET", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}});
             if(response.status === 200){
                 const bodyJson = await response.json();
+                console.error("BBBBBBBBBBBBBBBB", bodyJson);
                 dispatch(clientDriversDataSuccess(bodyJson))
             } else {
                 throw ({operation: "GET_CLIENT_DRIVERS", errorCode: response.status, message: response.statusText});
@@ -104,7 +105,7 @@ export const editClientDriver = (token, driver) => {
             const response = await fetch(rootUrl + "/drivers/edit", {method: "PUT", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(driver)});
             if(response.status === 200){
                 const bodyJson = await response.json();
-                dispatch(editClientDriverSuccess(bodyJson))
+                dispatch(editClientDriverSuccess(bodyJson));
             } else {
                 throw ({operation: "EDIT_CLIENT_DRIVER", errorCode: response.status, message: response.statusText});
             }

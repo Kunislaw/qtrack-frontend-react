@@ -5,7 +5,7 @@ import { rootUrl } from '../../App';
 import history from '../../history';
 import { fetchUserData } from '../../operations/user-operations';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faSignOutAlt, faTruck, faUser, faWheelchair } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faMicrochip, faSignOutAlt, faTruck, faUser, faWheelchair } from '@fortawesome/free-solid-svg-icons';
 
 export class Navbar extends React.Component {
     constructor(props){
@@ -33,6 +33,7 @@ export class Navbar extends React.Component {
                     {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/home")}><FontAwesomeIcon icon={faHome}/>Ogólne</a></li>}
                     {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/drivers")}><FontAwesomeIcon icon={faUser}/>Kierowcy</a></li>}
                     {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/vehicles")}><FontAwesomeIcon icon={faTruck}/>Pojazdy</a></li>}
+                    {user.role === "U" && <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/devices")}><FontAwesomeIcon icon={faMicrochip}/>Urządzenia</a></li>}
                     <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/logout")}><FontAwesomeIcon icon={faSignOutAlt}/>Wyloguj</a></li>
                 </ul>
             </nav>

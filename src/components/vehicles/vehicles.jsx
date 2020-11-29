@@ -50,9 +50,10 @@ export class Vehicles extends React.Component {
     }
     render() {
         const { show, selectedItem, currentPage, entriesPerPage } = this.state;
-        const { vehiclesState, user } = this.props;
+        const { vehiclesState, driversState, user } = this.props;
         const vehiclesOnPage = vehiclesState.vehicles.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - vehiclesOnPage.length;
+        console.error(driversState.drivers);
         return <>
                 <div className="container-md minHeight">
                     <div className="row pagination">
@@ -74,7 +75,7 @@ export class Vehicles extends React.Component {
                                 <th scope="col">Marka</th>
                                 <th scope="col">Model</th>
                                 <th scope="col">Tablica</th>
-                                <th scope="col">Przypisz urządzenie</th>
+                                <th scope="col">Przypisz kierowce</th>
                                 <th scope="col">Szczegóły</th>
                                 <th scope="col">Edytuj</th>
                                 <th scope="col">Usuń</th>
@@ -121,7 +122,7 @@ export class Vehicles extends React.Component {
                             {selectedItem?.delete && "Usuń pojazd"}
                             {selectedItem?.edit && "Edytuj pojazd"}
                             {selectedItem?.details && "Szczegóły pojazdu"}
-                            {selectedItem?.assign && "Przypisz urządzenie do pojazdu"}
+                            {selectedItem?.assign && "Przypisz kierowce do pojazdu"}
                         </Modal.Title>
                     </Modal.Header>
                     
@@ -136,7 +137,7 @@ export class Vehicles extends React.Component {
                                 engineCapacity: selectedItem ? selectedItem.engineCapacity : '',
                                 fuelType: selectedItem ? selectedItem.fuelType : '',
                                 odometer: selectedItem ? selectedItem.odometer : '',
-
+                                driverId: selectedItem?.assign ? '' : selectedItem?.driver ? selectedItem.driver.id : ''
                                 }}
                                 validate={values => {
                                 const errors = {};
@@ -184,17 +185,26 @@ export class Vehicles extends React.Component {
                                 return errors;
                             }}
                             onSubmit={async (values, { setSubmitting }) => {
-                                console.error("VALUEESS DRIVERS", values, selectedItem);
                                 if(checkUserIsLogged()){
                                     const token = localStorage.getItem("access_token");
+                                    if(values.fuelType === "") values.fuelType = null;
+                                    if(values.driverId === "") values.driverId = null;
                                     if(selectedItem.add){
                                         const payload = {...values, clientId: user.clientId};
+                                        console.error("PAYLOAD11", payload);
+
                                         this.props.addClientVehicle(token, payload);
-                                    } else if(selectedItem.edit){
+                                    } else if(selectedItem.edit || selectedItem.assign){
                                         const payload = {...selectedItem, ...values};
+                                        console.error("PAYLOAD22", payload);
+
                                         this.props.editClientVehicle(token, payload);                         
                                     } else if (selectedItem.delete){
                                         this.props.deleteClientVehicle(token, selectedItem.id);
+                                    } else if(selectedItem.assign){
+                                        const payload = {...selectedItem, ...values};
+                                        console.error("PAYLOAD22", payload);
+                                        this.props.editClientVehicle(token, payload);     
                                     }
                                     this.setState({show: false});
                                 } else {
@@ -243,9 +253,18 @@ export class Vehicles extends React.Component {
                                     </div>
                                     <div className="form-group">
                                         <label for="fuelType">Rodzaj paliwa (opcjonalne)</label>
-                                        <Field type="text" class="form-control" name="fuelType" />
-                                        <ErrorMessage name="fuelType" component="div" />
+                                        <Field as="select"  class="form-control" name="fuelType">
+                                            <option value="" selected>Nieistotne</option>
+                                            <option value="Benzyna">Benzyna</option>
+                                            <option value="Benzyna + LPG">Benzyna + LPG</option>
+                                            <option value="Benzyna + CNG">Benzyna + CNG</option>
+                                            <option value="Diesel">Diesel</option>
+                                            <option value="Diesel + LPG">Diesel + LPG</option>
+                                            <option value="Hybryda">Hybryda</option>
+                                            <option value="Elektryczny">Elektryczny</option>
+                                        </Field>
                                     </div>
+                                    
                                     <div className="form-group">
                                         <label for="odometer">Przebieg (opcjonalne)</label>
                                         <Field type="text" class="form-control" name="odometer" />
@@ -268,6 +287,17 @@ export class Vehicles extends React.Component {
                                     </div>
                                     </>}
                                     {selectedItem.delete && "Czy na pewno chcesz usunać ten pojazd?"}
+                                    {selectedItem.assign && <>
+                                        <div className="form-group">
+                                        <label for="driverId">Kierowca</label>
+                                        <Field as="select"  class="form-control" name="driverId">
+                                            <option value="">Brak</option>
+                                            {driversState.drivers.filter((driver) => !driver.vehicle).map((item) => {
+                                                return <option value={item.id}>{item.firstName + " " + item.lastName + "(" + item.position + ")"}</option>
+                                            })}
+                                        </Field>
+                                    </div>
+                                    </>}
                                 </Modal.Body>
                                 <Modal.Footer>
                                     
@@ -290,6 +320,7 @@ export class Vehicles extends React.Component {
 const mapStateToProps = (state) => {
     return {
         user: state.user,
+        driversState: state.driversState,
         vehiclesState: state.vehiclesState
     };
 }

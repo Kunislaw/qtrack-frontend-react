@@ -94,7 +94,7 @@ export class Drivers extends React.Component {
                                             <td>{item.lastName}</td>
                                             <td>{item.phone}</td>
                                             <td>{item.position}</td>
-                                            <td>{item?.vehicle ? item.vehicle : "Brak"}</td>
+                                            <td>{item?.vehicle ? item.vehicle.mark + " " + item.vehicle.model + " (" + item.vehicle.plate + ")" : "Brak"}</td>
                                             <td><button type="button" className="btn btn-secondary" onClick={() => this.selectOption({...item, edit: true})}><FontAwesomeIcon icon={faEdit} /></button></td>
                                             <td><button type="button" className="btn btn-danger" onClick={() => this.selectOption({...item, delete: true})}><FontAwesomeIcon icon={faTrashAlt} /></button></td>
                                             </tr>

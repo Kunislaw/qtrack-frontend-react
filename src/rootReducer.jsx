@@ -1,4 +1,5 @@
 import { combineReducers } from 'redux'
+import { clientDevicesReducer } from './reducers/client-devices.reducer';
 import { clientDriversReducer } from './reducers/client-drivers.reducer';
 import { clientVehiclesReducer } from './reducers/client-vehicles.reducer';
 import { userHaveErrorReducer, userIsLoadingReducer, userLoggingErrorReducer, userReducer, userRegisterErrorReducer } from './reducers/user-reducer';
@@ -11,7 +12,8 @@ const rootReducer = combineReducers({
     userLoggingError: userLoggingErrorReducer,
     userRegisterError: userRegisterErrorReducer,
     driversState: clientDriversReducer,
-    vehiclesState: clientVehiclesReducer
+    vehiclesState: clientVehiclesReducer,
+    devicesState: clientDevicesReducer
 });
 
 export default rootReducer;

@@ -72,11 +72,11 @@ export const fetchClientVehicles = (token, clientId) => {
     }
 }
 
-export const addClientVehicle = (token, driver) => {
+export const addClientVehicle = (token, vehicle) => {
     return async (dispatch) => {
         try{
             dispatch(setFetchingClientVehicles(true));//Ustaw oczekiwanie na dane
-            const response = await fetch(rootUrl + "/vehicles/create", {method: "POST", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(driver)});
+            const response = await fetch(rootUrl + "/vehicles/create", {method: "POST", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(vehicle)});
             if(response.status === 201){
                 const bodyJson = await response.json();
                 dispatch(addClientVehicleSuccess(bodyJson))
@@ -97,14 +97,15 @@ export const addClientVehicle = (token, driver) => {
     }
 }
 
-export const editClientVehicle = (token, driver) => {
+export const editClientVehicle = (token, vehicle) => {
     return async (dispatch) => {
         try{
             dispatch(setFetchingClientVehicles(true));//Ustaw oczekiwanie na dane
-            const response = await fetch(rootUrl + "/vehicles/edit", {method: "PUT", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(driver)});
+            const response = await fetch(rootUrl + "/vehicles/edit", {method: "PUT", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(vehicle)});
             if(response.status === 200){
                 const bodyJson = await response.json();
                 dispatch(editClientVehicleSuccess(bodyJson))
+                dispatch({type: "ASSIGN_VEHICLE", vehicle: vehicle});
             } else {
                 throw ({operation: "EDIT_CLIENT_DRIVER", errorCode: response.status, message: response.statusText});
             }
@@ -122,14 +123,14 @@ export const editClientVehicle = (token, driver) => {
     }
 }
 
-export const deleteClientVehicle = (token, driverId) => {
+export const deleteClientVehicle = (token, vehicleId) => {
     return async (dispatch) => {
         try{
             dispatch(setFetchingClientVehicles(true));//Ustaw oczekiwanie na dane
-            const response = await fetch(rootUrl + "/vehicles/delete/" + driverId, {method: "DELETE", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}});
+            const response = await fetch(rootUrl + "/vehicles/delete/" + vehicleId, {method: "DELETE", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}});
             if(response.status === 200){
                 const bodyJson = await response.json();
-                dispatch(deleteClientVehicleSuccess(driverId))
+                dispatch(deleteClientVehicleSuccess(vehicleId))
             } else {
                 throw ({operation: "DELETE_CLIENT_VEHICLE", errorCode: response.status, message: response.statusText});
             }

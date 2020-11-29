@@ -1,4 +1,4 @@
-const INITIAL_STATE_USER_REDUCER = {
+const INITIAL_STATE_CLIENT_DRIVERS_REDUCER = {
     drivers: [],
     isFetching: false,
     error: {
@@ -7,7 +7,7 @@ const INITIAL_STATE_USER_REDUCER = {
         message: null
     }
 };
-export const clientDriversReducer = (state = INITIAL_STATE_USER_REDUCER, action) => {
+export const clientDriversReducer = (state = INITIAL_STATE_CLIENT_DRIVERS_REDUCER, action) => {
     switch(action.type) {
         case "SET_ERROR_CLIENT_DRIVERS":
             return {...state, error: {operation: action.operation, errorCode: action.errorCode, message: action.message}};
@@ -31,6 +31,20 @@ export const clientDriversReducer = (state = INITIAL_STATE_USER_REDUCER, action)
             return {...state, drivers: state.drivers.map((item) => {
                 if(item.id === action.driver.id){
                     return {...item, ...action.driver};
+                } else {
+                    return item;
+                }
+            }), isFetching: false, error: {operation: null, errorCode: null, message: null}};
+        }
+        case "ASSIGN_VEHICLE": {
+            console.error("XXXXXXXXXXXXXXXXXXXXXX", action.vehicle);
+            return {...state, drivers: state.drivers.map((item) => {
+                console.error("ZZZZZZZZZZZZZZZZZZZZZZZZZZ", item?.vehicle && item.vehicle.id === action.vehicle.id);
+                if(!item?.vehicle && item.id === action.vehicle.driverId){
+                    return {...item, vehicle: action.vehicle};
+                } else if(item?.vehicle && item.vehicle.id === action.vehicle.id){
+                    console.error("BBBBBBBdasasdas", {...item, vehicle: null});
+                    return {...item, vehicle: null};
                 } else {
                     return item;
                 }

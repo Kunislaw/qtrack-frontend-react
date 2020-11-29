@@ -7,6 +7,7 @@ import { Switch, Route, BrowserRouter } from "react-router-dom";
 import { Drivers } from "./components/drivers";
 import { Footer } from "./components/footer/index";
 import { Vehicles } from "./components/vehicles/index";
+import { Devices } from "./components/devices/devices";
 
 
 
@@ -36,7 +37,7 @@ class App extends React.Component {
 					<Drivers />
 				</Route>
 				<Route path ="/user/devices">
-					Urządzenia
+					<Devices />
 				</Route>
 				<Route path ="/user/vehicles">
 					<Vehicles />
