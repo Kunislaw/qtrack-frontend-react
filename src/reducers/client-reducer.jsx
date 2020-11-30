@@ -27,7 +27,7 @@ export const clientsReducer = (state = INITIAL_STATE_CLIENTS_REDUCER, action) =>
                 return state;
             }
         }
-        case "EDIT_CLIENT_VEHICLE": {
+        case "EDIT_CLIENT": {
             return {...state, clients: state.clients.map((item) => {
                 if(item.id === action.client.id){
                     return {...item, ...action.client};

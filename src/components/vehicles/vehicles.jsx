@@ -55,6 +55,7 @@ export class Vehicles extends React.Component {
         const { clientId } = this.props.match.params;
         const vehiclesOnPage = vehiclesState.vehicles.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - vehiclesOnPage.length;
+        
         return <>
                 <div className="container-md minHeight">
                     <div className="row pagination">

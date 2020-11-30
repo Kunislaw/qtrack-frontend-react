@@ -105,6 +105,7 @@ export const editClientDevice = (token, device) => {
             if(response.status === 200){
                 const bodyJson = await response.json();
                 dispatch(editClientDeviceSuccess(bodyJson))
+                dispatch({type: "ASSIGN_DEVICE", device: device});
             } else {
                 throw ({operation: "EDIT_CLIENT_DRIVER", errorCode: response.status, message: response.statusText});
             }

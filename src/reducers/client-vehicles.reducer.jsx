@@ -36,6 +36,17 @@ export const clientVehiclesReducer = (state = INITIAL_STATE_CLIENT_VEHICLES_REDU
                 }
             }), isFetching: false, error: {operation: null, errorCode: null, message: null}};
         }
+        case "ASSIGN_DEVICE": {
+            return {...state, vehicles: state.vehicles.map((item) => {
+                if(!item?.device && item.id === action.device.vehicleId){
+                    return {...item, device: action.device};
+                } else if(item?.device && item.device.id === action.device.id){
+                    return {...item, device: null};
+                } else {
+                    return item;
+                }
+            }), isFetching: false, error: {operation: null, errorCode: null, message: null}};
+        }
 		default:
 			return state;
 	}

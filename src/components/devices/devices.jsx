@@ -52,11 +52,10 @@ export class Devices extends React.Component {
 
     render() {
         const { show, selectedItem, currentPage, entriesPerPage } = this.state;
-        const { devicesState, user } = this.props;
+        const { devicesState, vehiclesState, user } = this.props;
         const { clientId } = this.props.match.params;
         const devicesOnPage = devicesState.devices.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - devicesOnPage.length;
-
         return <>
                 <div className="container-md minHeight">
                     <div className="row pagination">
@@ -92,7 +91,6 @@ export class Devices extends React.Component {
                                             <td>{item.ownName}</td>
                                             <td>{item?.vehicle ? item.vehicle.mark + item.vehicle.model + "(" + item.vehicle.plate + ")" : "Brak"}</td>
                                             <td><button type="button" className="btn btn-warning" onClick={() => this.selectOption({...item, assign: true})}><FontAwesomeIcon icon={faLink} /></button></td>
-                                            <td><button type="button" className="btn btn-primary" onClick={() => this.selectOption({...item, details: true})}><FontAwesomeIcon icon={faInfo} /></button></td>
                                             {user.role === "A" && <><td><button type="button" className="btn btn-secondary" onClick={() => this.selectOption({...item, edit: true})}><FontAwesomeIcon icon={faEdit} /></button></td>
                                             <td><button type="button" className="btn btn-danger" onClick={() => this.selectOption({...item, delete: true})}><FontAwesomeIcon icon={faTrashAlt} /></button></td></>}
                                             </tr>
@@ -128,9 +126,8 @@ export class Devices extends React.Component {
                     
                     <Formik
                             initialValues={{
-                                ownName: selectedItem ? selectedItem.mark : '',
-                                model: selectedItem ? selectedItem.model : '',
-
+                                ownName: selectedItem ? selectedItem.ownName : '',
+                                vehicleId: selectedItem?.assign ? '' : selectedItem?.vehicle ? selectedItem.vehicle.id : ''
                                 }}
                                 validate={values => {
                                 const errors = {};
@@ -140,27 +137,25 @@ export class Devices extends React.Component {
                                     } else if (values?.ownName?.length < 2) {
                                         errors.ownName = 'Nazwa własna nie możę być krótsza niż 2 znaki';
                                     }                           
-
-          
                                 }
                                 return errors;
                             }}
                             onSubmit={async (values, { setSubmitting }) => {
                                 if(checkUserIsLogged()){
+                                    console.error("SDJKLFDSJFLSDKF", values);
                                     const token = localStorage.getItem("access_token");
-                                    if(values.fuelType === "") values.fuelType = null;
+                                    if(values.vehicleId === "") values.vehicleId = null;
                                     if(selectedItem.add){
                                         const payload = {...values, clientId: clientId};
                                         console.error("PAYLOAD11", payload);
 
-                                        this.props.addClientVehicle(token, payload);
-                                    } else if(selectedItem.edit){
+                                        this.props.addClientDevice(token, payload);
+                                    } else if(selectedItem.edit || selectedItem.assign){
                                         const payload = {...selectedItem, ...values};
                                         console.error("PAYLOAD22", payload);
-
-                                        this.props.editClientVehicle(token, payload);                         
+                                        this.props.editClientDevice(token, payload);                         
                                     } else if (selectedItem.delete){
-                                        this.props.deleteClientVehicle(token, selectedItem.id);
+                                        this.props.deleteClientDevice(token, selectedItem.id);
                                     }
                                     this.setState({show: false});
                                 } else {
@@ -178,20 +173,16 @@ export class Devices extends React.Component {
                                         <ErrorMessage name="ownName" component="div" />
                                     </div>
                                     </>}
-                                    {selectedItem.details && <>
-                                    <div className="row">
-                                        <div className="col-md-12">Marka: {selectedItem.mark}</div>
-                                        <div className="col-md-12">Model: {selectedItem.model}</div>
-                                        <div className="col-md-12">Numer rejestracyjny: {selectedItem.plate}</div>
-                                        <div className="col-md-12">Rok produkcji: {selectedItem?.yearOfProduction ? selectedItem.yearOfProduction : "Brak"}</div>
-                                        <div className="col-md-12">Numer VIN: {selectedItem?.vinNumber ? selectedItem.vinNumber : "Brak"}</div>
-                                        <div className="col-md-12">Pojemność zbiornika paliwa: {selectedItem?.tankCapacity ? selectedItem.tankCapacity : "Brak"}</div>
-                                        <div className="col-md-12">Pojemność silnika: {selectedItem?.engineCapacity ? selectedItem.engineCapacity : "Brak"}</div>
-                                        <div className="col-md-12">Rodzaj paliwa: {selectedItem?.fuelType ? selectedItem.fuelType : "Brak"}</div>
-                                        <div className="col-md-12">Przebieg: {selectedItem?.odometer ? selectedItem.odometer : "Brak"}</div>
-                                        <div className="col-md-12">Kierowca: {selectedItem?.driver ? selectedItem.driver.firstName + " " + selectedItem.driver.lastName : "Brak"}</div>
-                                        <div className="col-md-12">Urządzenie: {selectedItem?.device ? selectedItem.device.id : "Brak"}</div>
-                                    </div>
+                                    {selectedItem.assign && <>
+                                        <div className="form-group">
+                                        <label for="vehicleId">Pojazd</label>
+                                        <Field as="select" class="form-control" name="vehicleId">
+                                            <option value="">Brak</option>
+                                            {vehiclesState.vehicles.filter((vehicle) => !vehicle.device).map((item) => {
+                                                return <option value={item.id}>{item.mark + " " + item.model + " (" + item.plate + ")"}</option>
+                                            })}
+                                        </Field>
+                                        </div>  
                                     </>}
                                     {selectedItem.delete && "Czy na pewno chcesz usunać ten pojazd?"}
                                 </Modal.Body>
@@ -217,7 +208,8 @@ export class Devices extends React.Component {
 const mapStateToProps = (state) => {
     return {
         user: state.user,
-        devicesState: state.devicesState
+        devicesState: state.devicesState,
+        vehiclesState: state.vehiclesState
     };
 }
 
