@@ -37,13 +37,10 @@ export const clientDriversReducer = (state = INITIAL_STATE_CLIENT_DRIVERS_REDUCE
             }), isFetching: false, error: {operation: null, errorCode: null, message: null}};
         }
         case "ASSIGN_VEHICLE": {
-            console.error("XXXXXXXXXXXXXXXXXXXXXX", action.vehicle);
             return {...state, drivers: state.drivers.map((item) => {
-                console.error("ZZZZZZZZZZZZZZZZZZZZZZZZZZ", item?.vehicle && item.vehicle.id === action.vehicle.id);
                 if(!item?.vehicle && item.id === action.vehicle.driverId){
                     return {...item, vehicle: action.vehicle};
                 } else if(item?.vehicle && item.vehicle.id === action.vehicle.id){
-                    console.error("BBBBBBBdasasdas", {...item, vehicle: null});
                     return {...item, vehicle: null};
                 } else {
                     return item;
