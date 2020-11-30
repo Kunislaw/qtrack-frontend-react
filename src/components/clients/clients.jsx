@@ -42,8 +42,8 @@ export class Clients extends React.Component {
 
 
     componentDidMount(){
-        //console.error("XXXXXXXXXXXXXX", this.props.match.params.clientId);
-        if(checkUserIsLogged()){
+        const { user } = this.props;
+        if(checkUserIsLogged() && user.role === "A"){
             const token = localStorage.getItem("access_token");
             this.props.fetchClients(token);
         } else {
@@ -55,7 +55,7 @@ export class Clients extends React.Component {
         const { clientsState, user } = this.props;
         const clientsOnPage = clientsState.clients.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - clientsOnPage.length;
-
+        console.error("ERRERER", this.props);
         return <>
                 <div className="container-md minHeight">
                     <div className="row pagination">
@@ -127,16 +127,17 @@ export class Clients extends React.Component {
                     </Modal.Header>
                     
                     <Formik
+                            enableReinitialize
                             initialValues={{
                                 name: selectedItem ? selectedItem.name : '',
                                 phone: selectedItem ? selectedItem.phone : '',
                                 zipCode: selectedItem ? selectedItem.zipCode : '',
                                 address: selectedItem ? selectedItem.address : '',
+                                country: selectedItem ? selectedItem.country : '',
                                 firstName: selectedItem ? selectedItem.firstName : '',
                                 lastName: selectedItem ? selectedItem.lastName : '',
-                                isCompany: selectedItem ? selectedItem.isCompany : false,
+                                isCompany: selectedItem ? selectedItem.isCompany : "false",
                                 companyName: selectedItem ? selectedItem.companyName : '',
-                                companyCountry: selectedItem ? selectedItem.companyCountry : '',
                                 companyTaxIdentifier: selectedItem ? selectedItem.companyTaxIdentifier : '',
                                 }}
                                 validate={values => {
@@ -151,7 +152,7 @@ export class Clients extends React.Component {
 
                                     if(!values.phone){
                                         errors.phone = "Podaj numer telefonu";
-                                    } else if(values.phone && values.phone.match(new RegExp("\\d{9}"))){
+                                    } else if(values.phone && !values.phone.match(new RegExp("^\\d{9}$"))){
                                         errors.phone = "Numer telefonu musi miec 9 cyfr"
                                     }
 
@@ -162,7 +163,13 @@ export class Clients extends React.Component {
                                         errors.address = "Podaj adres klienta"
                                     }
 
-                                    if(values.isCompany){
+                                    if(!values.country){
+                                        errors.country = "Podaj kraj";
+                                    } else if(values?.country?.length < 2){
+                                        errors.country = "Kraj musi posiadać chociaż 2 znaki";
+                                    }
+
+                                    if(JSON.parse(values.isCompany) === true){
                                         if(!values.companyName){
                                             errors.companyName = "Jeżeli klient jest firma, to podaj jej nazwe";
                                         } else if(values?.companyName?.length < 2 ){
@@ -175,34 +182,31 @@ export class Clients extends React.Component {
                                         }
                                     }
 
-                                    if(!values.isCompany){
+                                    if(JSON.parse(values.isCompany) === false){
                                         if(!values.firstName){
                                             errors.firstName = "Jeżeli klient jest osoba prywatna, to podaj jego imie";
                                         } else if(values?.firstName?.length < 2){
                                             errors.firstName = "Imie klienta nie może być krótsze niż 2 znaki";
                                         }
                                     }
-
-          
                                 }
+                                console.error("ERROROROROROROR", errors);
                                 return errors;
                             }}
                             onSubmit={async (values, { setSubmitting }) => {
                                 if(checkUserIsLogged()){
                                     const token = localStorage.getItem("access_token");
-
+                                    if(values.isCompany) values.isCompany = JSON.parse(values.isCompany);
                                     if(selectedItem.add){
-                                        const payload = {...values, clientId: user.clientId};
+                                        const payload = {...values};
                                         console.error("PAYLOAD11", payload);
-
-                                        this.props.addClientVehicle(token, payload);
+                                        this.props.addClient(token, payload);
                                     } else if(selectedItem.edit){
                                         const payload = {...selectedItem, ...values};
                                         console.error("PAYLOAD22", payload);
-
-                                        this.props.editClientVehicle(token, payload);                         
+                                        this.props.editClient(token, payload);                         
                                     } else if (selectedItem.delete){
-                                        this.props.deleteClientVehicle(token, selectedItem.id);
+                                        this.props.deleteClient(token, selectedItem.id);
                                     }
                                     this.setState({show: false});
                                 } else {
@@ -210,15 +214,65 @@ export class Clients extends React.Component {
                                 }
                             }}
                             >
-                            {({ isSubmitting }) => (
+                            {({ isSubmitting, values }) => (
                                 <><Form>
                                     <Modal.Body>
                                     {(selectedItem.add || selectedItem.edit) &&
-                                    <><div className="form-group">
-                                        <label for="ownName">Nazwa własna (wymagane)</label>
-                                        <Field type="text" class="form-control" name="ownName" />
-                                        <ErrorMessage name="ownName" component="div" />
+                                    <>
+                                    <div className="form-group">
+                                        <label for="isCompany">Rodzaj klienta</label>
+                                        <Field as="select" class="form-control" name="isCompany">
+                                            <option value="false" selected>Osoba prywatna</option>
+                                            <option value="true">Firma</option>
+                                        </Field>
                                     </div>
+                                    <div className="form-group">
+                                        <label for="name">Nazwa własna (wymagane)</label>
+                                        <Field type="text" class="form-control" name="name" />
+                                        <ErrorMessage name="name" component="div" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label for="phone">Telefon (wymagane)</label>
+                                        <Field type="text" class="form-control" name="phone" />
+                                        <ErrorMessage name="phone" component="div" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label for="zipCode">Kod pocztowy (wymagane)</label>
+                                        <Field type="text" class="form-control" name="zipCode" />
+                                        <ErrorMessage name="zipCode" component="div" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label for="address">Adres (wymagane)</label>
+                                        <Field type="text" class="form-control" name="address" />
+                                        <ErrorMessage name="address" component="div" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label for="country">Kraj (wymagane)</label>
+                                        <Field type="text" class="form-control" name="country" />
+                                        <ErrorMessage name="country" component="div" />
+                                    </div>
+                                    {JSON.parse(values.isCompany) === true && <>
+                                    <div className="form-group">
+                                        <label for="companyName">Nazwa firmy (wymagane)</label>
+                                        <Field type="text" class="form-control" name="companyName" />
+                                        <ErrorMessage name="companyName" component="div" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label for="companyTaxIdentifier">Identyfikator podatkowy firmy (wymagane)</label>
+                                        <Field type="text" class="form-control" name="companyTaxIdentifier" />
+                                        <ErrorMessage name="companyTaxIdentifier" component="div" />
+                                    </div></>}
+                                    {(JSON.parse(values.isCompany) === false) && <>
+                                    <div className="form-group">
+                                        <label for="firstName">Imię (wymagane)</label>
+                                        <Field type="text" class="form-control" name="firstName" />
+                                        <ErrorMessage name="firstName" component="div" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label for="lastName">Nazwisko (wymagane)</label>
+                                        <Field type="text" class="form-control" name="lastName" />
+                                        <ErrorMessage name="lastName" component="div" />
+                                    </div></>}{JSON.stringify(values)}
                                     </>}
                                     {selectedItem.details && <>
                                     <div className="row">

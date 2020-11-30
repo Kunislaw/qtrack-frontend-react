@@ -19,7 +19,7 @@ export class Navbar extends React.Component {
 
     render() {
         const { user } = this.props;
-        const { clientId } = this.props.match.params;
+        const { clientId } = this?.props?.match?.params || {clientId: null};
         return <>
             <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
                 <a className="navbar-brand" href="#" onClick={(e) => historyPush(e, "/")}>Qtrack</a>
@@ -30,7 +30,7 @@ export class Navbar extends React.Component {
                     <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/user/manage/" + clientId + "/devices")}><FontAwesomeIcon icon={faMicrochip}/>Urządzenia</a></li></>}
 
 
-                    {user.role === "A" && <><li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/admin/home")}><FontAwesomeIcon icon={faUsers}/>Klienci</a></li>
+                    {user.role === "A" && clientId && <><li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/admin/home")}><FontAwesomeIcon icon={faUsers}/>Klienci</a></li>
                     <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/admin/manage/" + clientId + "/home")}><FontAwesomeIcon icon={faHome}/>Ogólne</a></li>
                     <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/admin/manage/" + clientId + "/drivers")}><FontAwesomeIcon icon={faUser}/>Kierowcy</a></li>
                     <li><a className="nav-link" href="#" onClick={(e) => historyPush(e, "/admin/manage/" + clientId + "/vehicles")}><FontAwesomeIcon icon={faTruck}/>Pojazdy</a></li>

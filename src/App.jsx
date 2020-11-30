@@ -24,9 +24,11 @@ class App extends React.Component {
         	<Route exact path="/" component={Login} />
           	<Route exact path="/register" component={Register} />
 			<Route path = "/user/home" component={CheckAuth} />
-			
-			<Route path = "/admin/home" component={Clients} />
-
+			<Route path = "/admin/home">
+				<Navbar />
+				<Clients />
+				<Footer />
+			</Route>
 			<Route path={["/user/manage/:clientId", "/admin/manage/:clientId"]}>
 				<Route path = {["/user/manage/:clientId", "/admin/manage/:clientId"]} component={Navbar} />				
 				<Route path = {["/user/manage/:clientId/home", "/admin/manage/:clientId/home"]} />

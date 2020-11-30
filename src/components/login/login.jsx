@@ -23,7 +23,6 @@ export class Login extends React.Component {
     render() {
         const { userLoggingError } = this.props;
         return <>
-            {JSON.stringify(this.props)}
             <section id="cover" class="min-vh-100">
                 <div id="cover-caption">
                     <div class="container">
