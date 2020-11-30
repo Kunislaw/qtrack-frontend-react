@@ -7,7 +7,8 @@ import { Switch, Route, BrowserRouter } from "react-router-dom";
 import { Drivers } from "./components/drivers";
 import { Footer } from "./components/footer/index";
 import { Vehicles } from "./components/vehicles/index";
-import { Devices } from "./components/devices/devices";
+import { Devices } from "./components/devices/index";
+import { Clients } from "./components/clients/index";
 
 
 
@@ -25,11 +26,9 @@ class App extends React.Component {
           	<Route exact path="/register">
             	<Register />
           	</Route>
-			<Route path={["/user", "/admin"]}>
+			<Route path={["/user", "/admin/manage/:clientId"]}>
 				<Navbar />
-				<Route path = "/admin/home">
-					<>AADMIN</>
-				</Route>
+				<Route path = "/admin/manage/:clientId" component={Clients} />
 				<Route path = "/user/home">
 					<></>
 				</Route>
