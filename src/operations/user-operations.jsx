@@ -1,3 +1,4 @@
+import { rootUrl } from "../App"
 import history from "../history"
 
 export const userHaveError = (bool) => {
@@ -21,25 +22,32 @@ export const userDataSuccess = (user) => {
     }
 }
 
-export const fetchUserData = (url, options) => {
-    return (dispatch) => {
-        dispatch(userIsLoading(true));
-        fetch(url, options).then((response) => {
+export const fetchUserData = (token) => {
+    return async (dispatch) => {
+        try{
+            dispatch(userIsLoading(true));
+            const response =  await fetch(rootUrl + "/auth/user", {method: "GET", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}});
             if(response.status !== 200){
-                throw Error(response.statusText)
+                throw (1);
+            } else {
+                const bodyJson = await response.json();
+                dispatch(userDataSuccess(bodyJson))
+                if(bodyJson.role === "A"){
+                    history.push("/admin/home");
+                } else if(bodyJson.role === "U"){
+                    history.push("/user/manage/" + bodyJson.clientId + "/home");
+                }
             }
-            return response.json();
-        })
-        .then((bodyJson) => {
-            dispatch(userDataSuccess(bodyJson))
-        })
-        .catch((error) => {
+        } catch (error){
             history.push("/");
             localStorage.removeItem("access_token");
             dispatch(userHaveError(true))
-        });
-    }
+        }
+
+    };
 }
+
+
 
 export const userLoggingError = (error) => {
     return {

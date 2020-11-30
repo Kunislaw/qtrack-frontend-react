@@ -43,7 +43,8 @@ export class Devices extends React.Component {
     componentDidMount(){
         if(checkUserIsLogged()){
             const token = localStorage.getItem("access_token");
-            this.props.fetchClientDevices(token, this.props.user.clientId);
+            const { clientId } = this.props.match.params;
+            this.props.fetchClientDevices(token, clientId);
         } else {
             history.push("/");
         }
@@ -52,11 +53,12 @@ export class Devices extends React.Component {
     render() {
         const { show, selectedItem, currentPage, entriesPerPage } = this.state;
         const { devicesState, user } = this.props;
+        const { clientId } = this.props.match.params;
         const devicesOnPage = devicesState.devices.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - devicesOnPage.length;
 
         return <>
-   <div className="container-md minHeight">
+                <div className="container-md minHeight">
                     <div className="row pagination">
                         <div className="col-md-1 centering text-center">
                             {user.role === "A" && <button type="button" className="btn btn-success" onClick={() => this.selectOption({add: true})}><FontAwesomeIcon icon={faPlus} /></button>}
@@ -148,7 +150,7 @@ export class Devices extends React.Component {
                                     const token = localStorage.getItem("access_token");
                                     if(values.fuelType === "") values.fuelType = null;
                                     if(selectedItem.add){
-                                        const payload = {...values, clientId: user.clientId};
+                                        const payload = {...values, clientId: clientId};
                                         console.error("PAYLOAD11", payload);
 
                                         this.props.addClientVehicle(token, payload);

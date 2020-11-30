@@ -9,6 +9,7 @@ import { Footer } from "./components/footer/index";
 import { Vehicles } from "./components/vehicles/index";
 import { Devices } from "./components/devices/index";
 import { Clients } from "./components/clients/index";
+import { CheckAuth } from "./components/checkAuth/index";
 
 
 
@@ -20,27 +21,18 @@ class App extends React.Component {
     render() {
       return <>
         <Switch>
-        	<Route exact path="/">
-            	<Login />
-          	</Route>
-          	<Route exact path="/register">
-            	<Register />
-          	</Route>
-			<Route path={["/user", "/admin/manage/:clientId"]}>
-				<Navbar />
-				<Route path = "/admin/manage/:clientId" component={Clients} />
-				<Route path = "/user/home">
-					<></>
-				</Route>
-				<Route path = "/user/drivers">
-					<Drivers />
-				</Route>
-				<Route path ="/user/devices">
-					<Devices />
-				</Route>
-				<Route path ="/user/vehicles">
-					<Vehicles />
-				</Route>
+        	<Route exact path="/" component={Login} />
+          	<Route exact path="/register" component={Register} />
+			<Route path = "/user/home" component={CheckAuth} />
+			
+			<Route path = "/admin/home" component={Clients} />
+
+			<Route path={["/user/manage/:clientId", "/admin/manage/:clientId"]}>
+				<Route path = {["/user/manage/:clientId", "/admin/manage/:clientId"]} component={Navbar} />				
+				<Route path = {["/user/manage/:clientId/home", "/admin/manage/:clientId/home"]} />
+				<Route path = {["/user/manage/:clientId/drivers", "/admin/manage/:clientId/drivers"]} component={Drivers}/>
+				<Route path = {["/user/manage/:clientId/vehicles", "/admin/manage/:clientId/vehicles"]} component={Vehicles}/>
+				<Route path = {["/user/manage/:clientId/devices", "/admin/manage/:clientId/devices"]} component={Devices}/>
 				<Footer />
 			</Route>
         </Switch>

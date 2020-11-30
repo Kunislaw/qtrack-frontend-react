@@ -43,7 +43,8 @@ export class Vehicles extends React.Component {
     componentDidMount(){
         if(checkUserIsLogged()){
             const token = localStorage.getItem("access_token");
-            this.props.fetchClientVehicles(token, this.props.user.clientId);
+            const { clientId } = this.props.match.params;
+            this.props.fetchClientVehicles(token, clientId);
         } else {
             history.push("/");
         }
@@ -51,9 +52,9 @@ export class Vehicles extends React.Component {
     render() {
         const { show, selectedItem, currentPage, entriesPerPage } = this.state;
         const { vehiclesState, driversState, user } = this.props;
+        const { clientId } = this.props.match.params;
         const vehiclesOnPage = vehiclesState.vehicles.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - vehiclesOnPage.length;
-        console.error(driversState.drivers);
         return <>
                 <div className="container-md minHeight">
                     <div className="row pagination">
@@ -190,7 +191,7 @@ export class Vehicles extends React.Component {
                                     if(values.fuelType === "") values.fuelType = null;
                                     if(values.driverId === "") values.driverId = null;
                                     if(selectedItem.add){
-                                        const payload = {...values, clientId: user.clientId};
+                                        const payload = {...values, clientId: clientId};
                                         console.error("PAYLOAD11", payload);
 
                                         this.props.addClientVehicle(token, payload);

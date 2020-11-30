@@ -45,7 +45,8 @@ export class Drivers extends React.Component {
     async componentDidMount(){
         if(checkUserIsLogged()){
             const token = localStorage.getItem("access_token");
-            this.props.fetchClientDrivers(token, this.props.user.clientId);
+            const { clientId } = this.props.match.params;
+            this.props.fetchClientDrivers(token, clientId);
         } else {
             history.push("/");
         }
@@ -56,6 +57,7 @@ export class Drivers extends React.Component {
     render() {
         const { show, selectedItem, currentPage, entriesPerPage } = this.state;
         const { driversState, user } = this.props;
+        const { clientId } = this.props.match.params;
         const driversOnPage = driversState.drivers.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - driversOnPage.length;
         return <>
@@ -148,8 +150,8 @@ export class Drivers extends React.Component {
                                         errors.lastName = 'Nazwisko musi mieć chociaż 2 znaki';
                                     }
 
-                                    if(values.phone && values.phone !== "" && values.phone.length !== 9){
-                                        errors.phone = "Numer telefonu musi miec 9 znakow"
+                                    if(values.phone && values.phone !== "" && values.phone.match(new RegExp("\\d{9}"))){
+                                        errors.phone = "Numer telefonu musi miec 9 cyfr"
                                     }
 
                                     if (!values.position) {
@@ -165,7 +167,7 @@ export class Drivers extends React.Component {
                                 if(checkUserIsLogged()){
                                     const token = localStorage.getItem("access_token");
                                     if(selectedItem.add){
-                                        const payload = {...values, clientId: user.clientId};
+                                        const payload = {...values, clientId: clientId};
                                         this.props.addClientDriver(token, payload);
                                     } else if(selectedItem.edit){
                                         const payload = {...selectedItem, ...values};
