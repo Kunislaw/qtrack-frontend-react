@@ -7,7 +7,6 @@ import { faChevronLeft, faChevronRight, faEdit, faInfo, faLink, faPlus, faTrashA
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, ErrorMessage, Field, Form } from 'formik';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Footer } from '../footer';
 
 export class Clients extends React.Component {
     constructor(props){
@@ -55,7 +54,6 @@ export class Clients extends React.Component {
         const { clientsState, user } = this.props;
         const clientsOnPage = clientsState.clients.slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - clientsOnPage.length;
-        console.error("ERRERER", this.props);
         return <>
                 <div className="container-md minHeight">
                     <div className="row pagination">
@@ -169,7 +167,7 @@ export class Clients extends React.Component {
                                         errors.country = "Kraj musi posiadać chociaż 2 znaki";
                                     }
 
-                                    if(JSON.parse(values.isCompany) === true){
+                                    if(values.isCompany && JSON.parse(values.isCompany) === true){
                                         if(!values.companyName){
                                             errors.companyName = "Jeżeli klient jest firma, to podaj jej nazwe";
                                         } else if(values?.companyName?.length < 2 ){
@@ -182,7 +180,7 @@ export class Clients extends React.Component {
                                         }
                                     }
 
-                                    if(JSON.parse(values.isCompany) === false){
+                                    if(values.isCompany && JSON.parse(values.isCompany) === false){
                                         if(!values.firstName){
                                             errors.firstName = "Jeżeli klient jest osoba prywatna, to podaj jego imie";
                                         } else if(values?.firstName?.length < 2){
@@ -251,7 +249,7 @@ export class Clients extends React.Component {
                                         <Field type="text" class="form-control" name="country" />
                                         <ErrorMessage name="country" component="div" />
                                     </div>
-                                    {JSON.parse(values.isCompany) === true && <>
+                                    {values.isCompany && JSON.parse(values.isCompany) === true && <>
                                     <div className="form-group">
                                         <label for="companyName">Nazwa firmy (wymagane)</label>
                                         <Field type="text" class="form-control" name="companyName" />
@@ -262,7 +260,7 @@ export class Clients extends React.Component {
                                         <Field type="text" class="form-control" name="companyTaxIdentifier" />
                                         <ErrorMessage name="companyTaxIdentifier" component="div" />
                                     </div></>}
-                                    {(JSON.parse(values.isCompany) === false) && <>
+                                    {(!values?.isCompany || (JSON.parse(values.isCompany) === false)) && <>
                                     <div className="form-group">
                                         <label for="firstName">Imię (wymagane)</label>
                                         <Field type="text" class="form-control" name="firstName" />
@@ -272,7 +270,7 @@ export class Clients extends React.Component {
                                         <label for="lastName">Nazwisko (wymagane)</label>
                                         <Field type="text" class="form-control" name="lastName" />
                                         <ErrorMessage name="lastName" component="div" />
-                                    </div></>}{JSON.stringify(values)}
+                                    </div></>}
                                     </>}
                                     {selectedItem.details && <>
                                     <div className="row">

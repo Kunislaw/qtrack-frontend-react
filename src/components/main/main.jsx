@@ -94,7 +94,7 @@ export class Main extends React.Component {
                 </div>
                 <div className="col-md-9">
                 <div className="leaflet-container">
-                <MapContainer center={center} zoom={13} scrollWheelZoom={false}>
+                <MapContainer center={center} zoom={13} scrollWheelZoom={true}>
                     <TileLayer
                         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -119,7 +119,7 @@ export class Main extends React.Component {
                                 startDate: new Date().getFullYear().toString() + "-" + (new Date().getMonth() + 1).toString().padStart(2,"0") + "-" + new Date().getDate().toString().padStart(2,"0"),
                                 startTime: "00:00",
                                 stopDate: new Date().getFullYear().toString() + "-" + (new Date().getMonth() + 1).toString().padStart(2,"0") + "-" + new Date().getDate().toString().padStart(2,"0"),
-                                stopTime: new Date().getHours() + ":" + new Date().getMinutes()}}
+                                stopTime: new Date().getHours().toString().padStart(2,"0") + ":" + new Date().getMinutes().toString().padStart(2,"0")}}
                                 validate={values => {
                                 const errors = {};
                                 if(selectedItem.route){
