@@ -10,6 +10,7 @@ import { Vehicles } from "./components/vehicles/index";
 import { Devices } from "./components/devices/index";
 import { Clients } from "./components/clients/index";
 import { CheckAuth } from "./components/checkAuth/index";
+import { Main } from "./components/main/index";
 
 
 
@@ -31,7 +32,7 @@ class App extends React.Component {
 			</Route>
 			<Route path={["/user/manage/:clientId", "/admin/manage/:clientId"]}>
 				<Route path = {["/user/manage/:clientId", "/admin/manage/:clientId"]} component={Navbar} />				
-				<Route path = {["/user/manage/:clientId/home", "/admin/manage/:clientId/home"]} />
+				<Route path = {["/user/manage/:clientId/home", "/admin/manage/:clientId/home"]} component={Main} />
 				<Route path = {["/user/manage/:clientId/drivers", "/admin/manage/:clientId/drivers"]} component={Drivers}/>
 				<Route path = {["/user/manage/:clientId/vehicles", "/admin/manage/:clientId/vehicles"]} component={Vehicles}/>
 				<Route path = {["/user/manage/:clientId/devices", "/admin/manage/:clientId/devices"]} component={Devices}/>

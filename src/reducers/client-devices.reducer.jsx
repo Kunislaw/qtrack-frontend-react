@@ -22,7 +22,7 @@ export const clientDevicesReducer = (state = INITIAL_STATE_CLIENT_DEVICES_REDUCE
         case "DELETE_CLIENT_DEVICE":{
             let findIndex = state.devices.findIndex((item) => item.id === action.deviceId);
             if(findIndex > -1){
-                return {...state, vehicles: [...state.devices.slice(0, findIndex), ...state.devices.slice(findIndex + 1)], isFetching: false, error: {operation: null, errorCode: null, message: null}}
+                return {...state, devices: [...state.devices.slice(0, findIndex), ...state.devices.slice(findIndex + 1)], isFetching: false, error: {operation: null, errorCode: null, message: null}}
             } else {
                 return state;
             }
