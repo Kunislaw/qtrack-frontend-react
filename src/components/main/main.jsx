@@ -21,7 +21,6 @@ export class Main extends React.Component {
     }
 
     componentDidMount(){
-
     }
 
     selectOption = (item) => {
@@ -68,7 +67,7 @@ export class Main extends React.Component {
                              <span className="padding-page-information">Strona {(currentPage + 1)}/{Math.ceil(vehiclesState.vehicles.length/entriesPerPage)}</span>
                             <button type="button" className="btn btn-primary" onClick={this.nextPage}><FontAwesomeIcon icon={faChevronRight} /></button>
                         </div>   
-                <div class="table-responsive">
+                        <div class="table-responsive">
                             <table class="table table-hover table-dark table-no-bottom-margin">
                             <thead class ="text-center">
                                 <tr>
@@ -115,34 +114,49 @@ export class Main extends React.Component {
                     </Modal.Header>
                     
                     <Formik
+                            enableReinitialize
                             initialValues={{
-                                firstName: selectedItem ? selectedItem.firstName : '',
-                                lastName: selectedItem ? selectedItem.lastName : '',
-                                phone: selectedItem ? selectedItem.phone : '',
-                                position: selectedItem ? selectedItem.position : ''}}
+                                startDate: new Date().getFullYear().toString() + "-" + (new Date().getMonth() + 1).toString().padStart(2,"0") + "-" + new Date().getDate().toString().padStart(2,"0"),
+                                startTime: "00:00",
+                                stopDate: new Date().getFullYear().toString() + "-" + (new Date().getMonth() + 1).toString().padStart(2,"0") + "-" + new Date().getDate().toString().padStart(2,"0"),
+                                stopTime: new Date().getHours() + ":" + new Date().getMinutes()}}
                                 validate={values => {
                                 const errors = {};
-                                if(selectedItem.add || selectedItem.edit){
-                                    if (!values.firstName) {
-                                        errors.firstName = 'Podaj imie';
-                                    } else if (values.firstName.length < 2) {
-                                        errors.firstName = 'Imię musi mieć chociaż 2 znaki';
-                                    }
-                                    if (!values.lastName) {
-                                        errors.lastName = 'Podaj nazwisko';
-                                    } else if (values?.lastName?.length < 2) {
-                                        errors.lastName = 'Nazwisko musi mieć chociaż 2 znaki';
-                                    }
-
-                                    if(values.phone && values.phone !== "" && values.phone.match(new RegExp("\\d{9}"))){
-                                        errors.phone = "Numer telefonu musi miec 9 cyfr"
-                                    }
-
-                                    if (!values.position) {
-                                        errors.position = 'Podaj stanowisko';
-                                    } else if (values.position.length < 2) {
-                                        errors.position = 'Stanowisko musi mieć chociaż 2 znaki';
-                                    }
+                                if(selectedItem.route){
+                                    if (!values.startDate || values.startDate === "") {
+                                        errors.startDate = 'Podaj date poczatkowa';
+                                    } else if (!values.startTime || values.startTime === "") {
+                                        errors.startDate = 'Podaj czas startowy';
+                                    } else if (!values.stopDate || values.stopDate === "") {
+                                        errors.startDate = "Podaj date końcową"
+                                    } else if(!values.stopTime || values.stopTime === "") {
+                                        errors.startDate = "Podaj czas końcowy"
+                                    } else if(values.startDate && values.startDate !== "" &&values.startTime && values.startTime !== "" && values.stopDate && values.stopDate !== "" && values.stopTime && values.stopTIme !== ""){
+                                        let splittedDateStart = values.startDate.split("-");
+                                        let splittedTimeStart = values.startTime.split(":");
+                                        let splittedDateStop = values.stopDate.split("-");
+                                        let splittedTimeStop = values.stopTime.split(":");
+                                        let yearStart = parseInt(splittedDateStart[0]);
+                                        let monthStart = parseInt(splittedDateStart[1]);
+                                        let dayStart = parseInt(splittedDateStart[2]);
+                                        let hoursStart = parseInt(splittedTimeStart[0]);
+                                        let minutesStart = parseInt(splittedTimeStart[1]);
+                                        let yearStop = parseInt(splittedDateStop[0]);
+                                        let monthStop = parseInt(splittedDateStop[1]);
+                                        let dayStop = parseInt(splittedDateStart[2]);
+                                        let hoursStop = parseInt(splittedTimeStop[0]);
+                                        let minutesStop = parseInt(splittedTimeStop[1]);
+                                        let startDate = new Date(yearStart, monthStart - 1, dayStart, hoursStart, minutesStart);
+                                        let stopDate = new Date(yearStop, monthStop - 1, dayStop, hoursStop, minutesStop);
+                                        let currentDateMinus3Month = new Date().setMonth(new Date().getMonth() - 3);
+                                        if(startDate.getTime() > stopDate.getTime()){
+                                            errors.startDate = "Data i czas startowy nie moze byc wiekszy od daty i czasu konćowego";
+                                        } else if((currentDateMinus3Month > startDate.getTime())) {
+                                            errors.startDate = "Data startowa jest starsza niz 3 miesiace, nie przechowujemy danych dluzej niz 3 m-c";
+                                        } else if((currentDateMinus3Month > stopDate.getTime())){
+                                            errors.startDate = "Data koncowa jest starsza niz 3 miesiace, nie przechowujemy danych dluzej niz 3 m-c";
+                                        }
+                                    }                            
                                 }
                                 return errors;
                             }}
@@ -150,15 +164,13 @@ export class Main extends React.Component {
                                 console.error("VALUEESS DRIVERS", values, selectedItem);
                                 if(checkUserIsLogged()){
                                     const token = localStorage.getItem("access_token");
-                                    if(selectedItem.add){
-                                        const payload = {...values, clientId: clientId};
-                                        this.props.addClientDriver(token, payload);
-                                    } else if(selectedItem.edit){
-                                        const payload = {...selectedItem, ...values};
-                                        this.props.editClientDriver(token, payload);                         
-                                    } else if (selectedItem.delete){
-                                        this.props.deleteClientDriver(token, selectedItem.id);
-                                    }
+                                    // if(selectedItem.route){
+                                    //     const payload = {...values, clientId: clientId};
+                                    //     this.props.addClientDriver(token, payload);
+                                    // } else if(selectedItem.raport){
+                                    //     const payload = {...selectedItem, ...values};
+                                    //     this.props.editClientDriver(token, payload);                         
+                                    // }
                                     this.setState({show: false});
                                 } else {
                                     history.push("/");
@@ -179,15 +191,15 @@ export class Main extends React.Component {
                                     </div>
                                     <div className="form-group">
                                         <label for="stopDate">Data końcowa</label>
-                                        <Field type="date" class="form-control" name="startDate" />
+                                        <Field type="date" class="form-control" name="stopDate" />
                                     </div>
                                     <div className="form-group">
                                         <label for="stopTime">Czas końcowy</label>
                                         <Field type="time" class="form-control" name="stopTime" />
                                     </div>
                                     <div className="form-group">
-                                        <ErrorMessage name="stopTime" component="div" />
-                                    </div>                                    
+                                        <ErrorMessage name="startDate" component="div" />
+                                    </div>
                                     </>}
                                     {selectedItem.raport && <></>}
                                 </Modal.Body>

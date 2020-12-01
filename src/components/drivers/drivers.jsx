@@ -63,7 +63,7 @@ export class Drivers extends React.Component {
         return <>
                 <div className="container-md minHeight">
                     <div className="row pagination">
-                        <div className="col-md-1 centering text-center ">
+                        <div className="col-md-1 centering text-center">
                             <button type="button" className="btn btn-success" onClick={() => this.selectOption({add: true})}><FontAwesomeIcon icon={faPlus} /></button>
                         </div>
                         <div className="col-md-3 offset-md-8 centering text-center">
