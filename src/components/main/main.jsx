@@ -1,7 +1,7 @@
 import { faChevronLeft, faChevronRight, faRoute, faTable } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react';
-import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
+import React, { createRef } from 'react';
+import { Map, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
 import { connect } from 'react-redux';
 import { fetchClientPositions } from '../../operations/client-positions-operations';
 import { checkUserIsLogged } from '../../utils/utils';
@@ -10,6 +10,8 @@ import { ErrorMessage, Field, Form, Formik } from 'formik';
 import history from '../../history';
 
 export class Main extends React.Component {
+    mapRef = createRef();
+    polylineRef = createRef();
     constructor(props){
         super(props);
         this.state = {
@@ -17,7 +19,22 @@ export class Main extends React.Component {
             selectedItem: null,
             currentPage: 0,
             entriesPerPage: 15,
+            x: false
         }
+    }
+    degToRad = (degress) => {
+        const pi = Math.PI;
+        return degress * (pi/180);     
+    }
+
+    distFrom = (lat1, lng1, lat2, lng2) => {
+        let earthRadius = 6371000; //meters
+        let dLat = this.degToRad(lat2-lat1);
+        let dLng = this.degToRad(lng2-lng1); 
+        let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(this.degToRad(lat1)) * Math.cos(this.degToRad(lat2)) * Math.sin(dLng/2) * Math.sin(dLng/2);
+        let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        let dist = (earthRadius * c);
+        return dist;     
     }
 
     componentDidMount(){
@@ -43,19 +60,41 @@ export class Main extends React.Component {
         }
     };
 
+
     render() {
         const { show, selectedItem, currentPage, entriesPerPage } = this.state;
-        const { vehiclesState, user } = this.props;
+        const { vehiclesState, positionsState, user } = this.props;
         const { clientId } = this.props.match.params;
         const vehiclesWithDevicesOnPage = vehiclesState.vehicles.filter((vehicle) => vehicle.device).slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
         const howManyEmptyRowsAdd = entriesPerPage - vehiclesWithDevicesOnPage.length;
 
-        const center = [53.121132, 17.992970]
+        let arrayOfSpeeds = [];
+        let minSpeed;
+        let averageSpeed;
+        let maxSpeed;
+        let distance;
+        let bounds = [[53.13639949265994, 17.97219069937233],
+                        [53.11833656504155, 18.079250439434617]
+                    ];
+        
+        if(positionsState.positions.length > 0){
+            bounds = [];
+            for(let i = 0; i < positionsState.positions.length; i++){
+                bounds.push([positionsState.positions[i].latitude, positionsState.positions[i].longitude])
+                if(i === 0){
+                    distance = 0;
+                } else {
+                    distance += this.distFrom(positionsState.positions[i].latitude, positionsState.positions[i].longitude, positionsState.positions[i-1].latitude, positionsState.positions[i-1].longitude);
+                }
+            }
+            distance = (distance/1000).toFixed(1);
+            arrayOfSpeeds = positionsState.positions.map((v) => v.speed);
+            minSpeed = (Math.min(...arrayOfSpeeds) * 3.6).toFixed(1);
+            averageSpeed = ((arrayOfSpeeds.reduce((a,b) => a+b, 0) * 3.6) / arrayOfSpeeds.length).toFixed(1)
+            maxSpeed = (Math.max(...arrayOfSpeeds) * 3.6).toFixed(1);
+        }
 
-        const polyline = [
-          [53.121132, 17.992970],
-          [53.015331, 18.605700],
-        ]
+        const polyline = positionsState.positions.map((value) => [value.latitude, value.longitude])
 
 
         return <>
@@ -94,13 +133,13 @@ export class Main extends React.Component {
                 </div>
                 <div className="col-md-9">
                 <div className="leaflet-container">
-                <MapContainer center={center} zoom={13} scrollWheelZoom={true}>
+                <Map bounds={bounds} zoom={13}>
                     <TileLayer
                         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     <Polyline positions={polyline}/>
-                </MapContainer>
+                </Map>
                 </div>
                 </div>
             </div>
@@ -109,7 +148,7 @@ export class Main extends React.Component {
                     <Modal.Header closeButton>
                         <Modal.Title>
                             {selectedItem?.route && "Wyznacz trase"}
-                            {selectedItem?.raport && "Generuj raport"}
+                            {selectedItem?.raport && "Raport z wyznaczone trasy"}
                         </Modal.Title>
                     </Modal.Header>
                     
@@ -164,13 +203,27 @@ export class Main extends React.Component {
                                 console.error("VALUEESS DRIVERS", values, selectedItem);
                                 if(checkUserIsLogged()){
                                     const token = localStorage.getItem("access_token");
-                                    // if(selectedItem.route){
-                                    //     const payload = {...values, clientId: clientId};
-                                    //     this.props.addClientDriver(token, payload);
-                                    // } else if(selectedItem.raport){
-                                    //     const payload = {...selectedItem, ...values};
-                                    //     this.props.editClientDriver(token, payload);                         
-                                    // }
+                                    if(selectedItem.route){
+                                        let splittedDateStart = values.startDate.split("-");
+                                        let splittedTimeStart = values.startTime.split(":");
+                                        let splittedDateStop = values.stopDate.split("-");
+                                        let splittedTimeStop = values.stopTime.split(":");
+                                        let yearStart = parseInt(splittedDateStart[0]);
+                                        let monthStart = parseInt(splittedDateStart[1]);
+                                        let dayStart = parseInt(splittedDateStart[2]);
+                                        let hoursStart = parseInt(splittedTimeStart[0]);
+                                        let minutesStart = parseInt(splittedTimeStart[1]);
+                                        let yearStop = parseInt(splittedDateStop[0]);
+                                        let monthStop = parseInt(splittedDateStop[1]);
+                                        let dayStop = parseInt(splittedDateStop[2]);
+                                        let hoursStop = parseInt(splittedTimeStop[0]);
+                                        let minutesStop = parseInt(splittedTimeStop[1]);
+                                        const payload = {
+                                            deviceId: selectedItem.device.id,
+                                            from: new Date(yearStart, monthStart - 1, dayStart, hoursStart, minutesStart),
+                                            to: new Date(yearStop, monthStop - 1, dayStop, hoursStop, minutesStop)};
+                                        this.props.fetchClientPositions(token, payload);
+                                    }
                                     this.setState({show: false});
                                 } else {
                                     history.push("/");
@@ -201,19 +254,28 @@ export class Main extends React.Component {
                                         <ErrorMessage name="startDate" component="div" />
                                     </div>
                                     </>}
-                                    {selectedItem.raport && <></>}
+                                    {selectedItem.raport && positionsState.positions.length > 0 && <>
+                                    <div className="row">
+                                        <div className="col-md-12">Prędkość maksymalna: {maxSpeed} km/h</div>
+                                        <div className="col-md-12">Prędkość średnia: {averageSpeed} km/h</div>
+                                        <div className="col-md-12">Prędkość minimalna: {minSpeed} km/h</div>
+                                        <div className="col-md-12">Dystans: {distance} km</div>
+                                        
+                                    </div>                                       
+                                    </>}
                                 </Modal.Body>
                                 <Modal.Footer>
+                                    {selectedItem.route && 
                                     <Button type="submit" variant="primary" disabled={isSubmitting}>
-                                        {selectedItem?.route && "Wyznacz"}
-                                        {selectedItem?.raport && "Generuj"}
-                                    </Button>
+                                        Wyznacz
+                                    </Button>}
                                     <Button variant="secondary"  onClick={() => {this.handleClose()}}>Zamknij</Button>
                                 </Modal.Footer>
                                 </Form></>
                             )}
                     </Formik>
-                </Modal>                
+                </Modal>
+                {}                
         </>
     }
 }
@@ -222,7 +284,7 @@ const mapStateToProps = (state) => {
     return {
         user: state.user,
         vehiclesState: state.vehiclesState,
-        positionsState: state.driversState
+        positionsState: state.positionsState
     }
 }
 

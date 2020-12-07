@@ -19,7 +19,7 @@ export const setFetchingClientPositions = (bool) => {
 
 export const clientPositionsDataSuccess = (positions) => {
     return {
-        type: "CLIENT_DEVICES_DATA_SUCCESS",
+        type: "CLIENT_POSITIONS_DATA_SUCCESS",
         positions: positions
     }
 }
@@ -31,10 +31,11 @@ export const fetchClientPositions = (token, payload) => {
     return async (dispatch) => {
         try{
             dispatch(setFetchingClientPositions(true));//Ustaw oczekiwanie na dane
-            const response = await fetch(rootUrl + "/positions/fromto", {method: "POST", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(payload)});
-            if(response.status === 200){
+            const response = await fetch(rootUrl + "/positions/device/fromto", {method: "POST", headers:{'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(payload)});
+            if(response.status === 201){
                 const bodyJson = await response.json();
-                dispatch(setFetchingClientPositions(bodyJson))
+                console.error("XDD", bodyJson);
+                dispatch(clientPositionsDataSuccess(bodyJson))
             } else {
                 throw ({operation: "GET_CLIENT_POSITIONS", errorCode: response.status, message: response.statusText});
             }
