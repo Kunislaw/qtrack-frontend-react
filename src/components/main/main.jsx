@@ -8,7 +8,10 @@ import { checkUserIsLogged } from '../../utils/utils';
 import { Modal, Button } from "react-bootstrap";
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import history from '../../history';
-
+import { iconFinish, iconPin, iconStart } from '../../icons';
+import { fetchClientDrivers } from '../../operations/client-drivers-operations';
+import { fetchClientDevices } from '../../operations/client-devices-operations';
+import { fetchClientVehicles } from '../../operations/client-vehicles-operations';
 export class Main extends React.Component {
     mapRef = createRef();
     polylineRef = createRef();
@@ -18,8 +21,7 @@ export class Main extends React.Component {
             show: false,
             selectedItem: null,
             currentPage: 0,
-            entriesPerPage: 15,
-            x: false
+            entriesPerPage: 15
         }
     }
     degToRad = (degress) => {
@@ -38,6 +40,15 @@ export class Main extends React.Component {
     }
 
     componentDidMount(){
+        if(checkUserIsLogged()){
+            const token = localStorage.getItem("access_token");
+            const { clientId } = this?.props?.match?.params || {clientId: null};
+            this.props.fetchClientVehicles(token, clientId);
+            this.props.fetchClientDrivers(token, clientId);
+            this.props.fetchClientDevices(token, clientId);
+        } else {
+            history.push("/");
+        }
     }
 
     selectOption = (item) => {
@@ -101,11 +112,16 @@ export class Main extends React.Component {
         <div className="container-fluid px-0">
             <div className="row no-gutters">
                 <div className="col-md-3 pagination-main">
-                        <div className="col-md-12 text-center no-gutters">
-                            <button type="button" className="btn btn-primary" onClick={this.previousPage}><FontAwesomeIcon icon={faChevronLeft} /></button>
-                             <span className="padding-page-information">Strona {(currentPage + 1)}/{Math.ceil(vehiclesState.vehicles.length/entriesPerPage)}</span>
-                            <button type="button" className="btn btn-primary" onClick={this.nextPage}><FontAwesomeIcon icon={faChevronRight} /></button>
-                        </div>   
+                        <div className="row">
+                            <div className="col-md-9 text-center no-gutters">
+                                <button type="button" className="btn btn-primary" onClick={this.previousPage}><FontAwesomeIcon icon={faChevronLeft} /></button>
+                                <span className="padding-page-information">Strona {(currentPage + 1)}/{Math.ceil(vehiclesState.vehicles.length/entriesPerPage)}</span>
+                                <button type="button" className="btn btn-primary" onClick={this.nextPage}><FontAwesomeIcon icon={faChevronRight} /></button>
+                            </div>
+                            <div className="col-md-3 text-center no-gutters">
+                                <button type="button" className="btn btn-danger" onClick={() => this.selectOption({raport: true})}><FontAwesomeIcon icon={faTable} /></button>
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover table-dark table-no-bottom-margin">
                             <thead class ="text-center">
@@ -113,7 +129,6 @@ export class Main extends React.Component {
                                 <th scope="col">#</th>
                                 <th scope="col">Auto</th>
                                 <th scope="col">Trasa</th>
-                                <th scope="col">Raport</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -123,7 +138,6 @@ export class Main extends React.Component {
                                             <th scope="row">{index + 1 + ((currentPage*entriesPerPage))}</th>
                                             <td>{item.mark + " " + item.model + " (" + item.plate + ")"}</td>
                                             <td><button type="button" className="btn btn-secondary" onClick={() => this.selectOption({...item, route: true})}><FontAwesomeIcon icon={faRoute} /></button></td>
-                                            <td><button type="button" className="btn btn-danger" onClick={() => this.selectOption({...item, raport: true})}><FontAwesomeIcon icon={faTable} /></button></td>
                                             </tr>
                                     </>
                                 })}
@@ -139,6 +153,12 @@ export class Main extends React.Component {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     <Polyline positions={polyline}/>
+                    {positionsState.positions.length >= 1 && <>
+                    <Marker position={[positionsState.positions[0].latitude, positionsState.positions[0].longitude]} icon={iconStart} />
+                    </>}
+                    {positionsState.positions.length >= 2 && <>
+                    <Marker position={[positionsState.positions[positionsState.positions.length-1].latitude, positionsState.positions[positionsState.positions.length-1].longitude]} icon={iconFinish}/>
+                    </>}
                 </Map>
                 </div>
                 </div>
@@ -291,7 +311,9 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         fetchClientPositions: (token, payload) => dispatch(fetchClientPositions(token, payload)),
-
+        fetchClientVehicles: (token, clientId) => dispatch(fetchClientVehicles(token, clientId)),
+        fetchClientDrivers: (token, clientId) => dispatch(fetchClientDrivers(token, clientId)),
+        fetchClientDevices: (token, clientId) => dispatch(fetchClientDevices(token, clientId))
     }
 }
 
