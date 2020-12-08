@@ -1,5 +1,5 @@
 #cover {
-    //background: #222 url('https://unsplash.it/1920/1080/?random') center center no-repeat;
+    background: #222 url('../../images/background-image.jpg') center center no-repeat;
     background-size: cover;
     height: 100%;
     text-align: center;
@@ -22,7 +22,7 @@ form:before {
     position: absolute;
     top: 0;
     width: 100%;
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0,0,0,0.8);
     z-index: -1;
     border-radius: 10px;
 }

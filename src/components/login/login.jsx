@@ -63,11 +63,11 @@ export class Login extends React.Component {
                                                 <Field type="password" class="form-control" name="password" />
                                                 <ErrorMessage name="password" component="div" />
                                             </div>
-                                            <div className="form-group row">
-                                            {userLoggingError && <div class="alert alert-danger" role="alert">
+                                            
+                                            {userLoggingError && <div className="row"><div className="col-md-12"><div class="alert alert-danger" role="alert">
                                                 {userLoggingError === 401 && "Błędny login lub hasło"}
-                                            </div>}
-                                            </div>
+                                            </div></div></div>}
+                                            
                                             <div class="form-group row">
                                                 <div class="col-md-6">
                                                     <button type="submit" class="btn btn-primary btn-lg" disabled={isSubmitting}>Zaloguj</button>

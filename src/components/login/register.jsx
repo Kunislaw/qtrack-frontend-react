@@ -12,7 +12,6 @@ export class Register extends React.Component {
     render() {
         const { userRegisterError } = this.props;
         return <>
-            {JSON.stringify(this.props)}
             <section id="cover" class="min-vh-100">
                 <div id="cover-caption">
                     <div class="container">
@@ -102,12 +101,10 @@ export class Register extends React.Component {
                                                 <Field type="password" class="form-control" name="repeatPassword" />
                                                 <ErrorMessage name="repeatPassword" component="div" />
                                             </div>
-                                            <div className="form-group row">
-                                            {userRegisterError && <div class="alert alert-danger" role="alert">
+                                            {userRegisterError && <div className="row"><div className="col-md-12"><div class="alert alert-danger" role="alert">
                                                 {userRegisterError === 404 && "Nie znaleziono podanego identyfikatora klienta"}
                                                 {userRegisterError === 409 && "Użytkownik z takim samym adresem e-mail już istnieje"}
-                                            </div>}
-                                            </div>
+                                            </div></div></div>}
                                             <div class="form-group row">
                                                 <div class="col-md-6">
                                                     <button type="submit" class="btn btn-primary btn-lg" disabled={isSubmitting}>Zarejestruj</button>

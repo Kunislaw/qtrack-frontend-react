@@ -163,10 +163,18 @@ export class Main extends React.Component {
                     />
                     <Polyline positions={polyline}/>
                     {positionsState.positions.length >= 1 && <>
-                    <Marker position={[positionsState.positions[0].latitude, positionsState.positions[0].longitude]} icon={iconStart} />
+                    <Marker position={[positionsState.positions[0].latitude, positionsState.positions[0].longitude]} icon={iconStart}>
+                        <Popup>
+                            Czas rozpoczęcia trasy: {new Date(positionsState.positions[0].utcTimestamp * 1000).toLocaleString()}
+                        </Popup>
+                    </Marker>
                     </>}
                     {positionsState.positions.length >= 2 && <>
-                    <Marker position={[positionsState.positions[positionsState.positions.length-1].latitude, positionsState.positions[positionsState.positions.length-1].longitude]} icon={iconFinish}/>
+                    <Marker position={[positionsState.positions[positionsState.positions.length-1].latitude, positionsState.positions[positionsState.positions.length-1].longitude]} icon={iconFinish}>
+                        <Popup>
+                            Czas zakończenia trasy: {new Date(positionsState.positions[positionsState.positions.length-1].utcTimestamp * 1000).toLocaleString()}
+                        </Popup>
+                    </Marker>
                     </>}
                     {vehiclesWithLastPosition.length > 0 && <>
                         {vehiclesWithLastPosition.map((vehicle) => {
