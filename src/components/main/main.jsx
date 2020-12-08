@@ -1,14 +1,14 @@
-import { faChevronLeft, faChevronRight, faRoute, faTable } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faEraser, faRoute, faTable } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { createRef } from 'react';
-import { Map, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
+import { Map, Marker, Polyline, Popup, TileLayer, Tooltip } from 'react-leaflet';
 import { connect } from 'react-redux';
-import { fetchClientPositions } from '../../operations/client-positions-operations';
+import { clearClientPositions, fetchClientPositions } from '../../operations/client-positions-operations';
 import { checkUserIsLogged } from '../../utils/utils';
 import { Modal, Button } from "react-bootstrap";
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import history from '../../history';
-import { iconFinish, iconPin, iconStart } from '../../icons';
+import { iconFinish, iconPin, iconStart, iconTruck } from '../../icons';
 import { fetchClientDrivers } from '../../operations/client-drivers-operations';
 import { fetchClientDevices } from '../../operations/client-devices-operations';
 import { fetchClientVehicles } from '../../operations/client-vehicles-operations';
@@ -77,6 +77,7 @@ export class Main extends React.Component {
         const { vehiclesState, positionsState, user } = this.props;
         const { clientId } = this.props.match.params;
         const vehiclesWithDevicesOnPage = vehiclesState.vehicles.filter((vehicle) => vehicle.device).slice((currentPage*entriesPerPage), entriesPerPage*(currentPage+1));
+        const vehiclesWithLastPosition = vehiclesState.vehicles.filter((vehicle) => vehicle?.device?.lastPosition);
         const howManyEmptyRowsAdd = entriesPerPage - vehiclesWithDevicesOnPage.length;
 
         let arrayOfSpeeds = [];
@@ -85,7 +86,7 @@ export class Main extends React.Component {
         let maxSpeed;
         let distance;
         let bounds = [[53.13639949265994, 17.97219069937233],
-                        [53.11833656504155, 18.079250439434617]
+                      [53.11833656504155, 18.079250439434617]
                     ];
         
         if(positionsState.positions.length > 0){
@@ -103,6 +104,11 @@ export class Main extends React.Component {
             minSpeed = (Math.min(...arrayOfSpeeds) * 3.6).toFixed(1);
             averageSpeed = ((arrayOfSpeeds.reduce((a,b) => a+b, 0) * 3.6) / arrayOfSpeeds.length).toFixed(1)
             maxSpeed = (Math.max(...arrayOfSpeeds) * 3.6).toFixed(1);
+        } else if (vehiclesWithLastPosition.length > 0){
+            bounds = [];
+            for(let i = 0; i < vehiclesWithLastPosition.length; i++){
+                bounds.push([vehiclesWithLastPosition[i].device.lastPosition.latitude, vehiclesWithLastPosition[i].device.lastPosition.longitude]);
+            }
         }
 
         const polyline = positionsState.positions.map((value) => [value.latitude, value.longitude])
@@ -113,10 +119,13 @@ export class Main extends React.Component {
             <div className="row no-gutters">
                 <div className="col-md-3 pagination-main">
                         <div className="row">
-                            <div className="col-md-9 text-center no-gutters">
+                            <div className="col-md-6 text-center no-gutters">
                                 <button type="button" className="btn btn-primary" onClick={this.previousPage}><FontAwesomeIcon icon={faChevronLeft} /></button>
                                 <span className="padding-page-information">Strona {(currentPage + 1)}/{Math.ceil(vehiclesState.vehicles.length/entriesPerPage)}</span>
                                 <button type="button" className="btn btn-primary" onClick={this.nextPage}><FontAwesomeIcon icon={faChevronRight} /></button>
+                            </div>
+                            <div className="col-md-3 text-center no-gutters">
+                                <button type="button" className="btn btn-info" onClick={() => this.selectOption({eraseRoute: true})}><FontAwesomeIcon icon={faEraser} /></button>
                             </div>
                             <div className="col-md-3 text-center no-gutters">
                                 <button type="button" className="btn btn-danger" onClick={() => this.selectOption({raport: true})}><FontAwesomeIcon icon={faTable} /></button>
@@ -159,6 +168,18 @@ export class Main extends React.Component {
                     {positionsState.positions.length >= 2 && <>
                     <Marker position={[positionsState.positions[positionsState.positions.length-1].latitude, positionsState.positions[positionsState.positions.length-1].longitude]} icon={iconFinish}/>
                     </>}
+                    {vehiclesWithLastPosition.length > 0 && <>
+                        {vehiclesWithLastPosition.map((vehicle) => {
+                            return <><Marker position={[vehicle.device.lastPosition.latitude, vehicle.device.lastPosition.longitude]} icon={iconTruck}>
+                            <Popup>{<>Predkość: {(vehicle.device.lastPosition.speed * 3.6).toFixed(1)} km/h<br />
+                                    Czas zgłoszenia: {new Date(vehicle.device.lastPosition.utcTimestamp * 1000).toLocaleString()}<br />
+                                    </>}</Popup>
+                            <Tooltip direction='bottom' opacity={1} permanent>
+                                <span>{vehicle.mark + ' ' + vehicle.model + ' (' + vehicle.plate + ')'}</span>
+                            </Tooltip>
+                            </Marker></>
+                        })}
+                    </>}
                 </Map>
                 </div>
                 </div>
@@ -169,9 +190,10 @@ export class Main extends React.Component {
                         <Modal.Title>
                             {selectedItem?.route && "Wyznacz trase"}
                             {selectedItem?.raport && "Raport z wyznaczone trasy"}
+                            {selectedItem?.eraseRoute && "Wyczyśc trase"}
                         </Modal.Title>
                     </Modal.Header>
-                    
+                
                     <Formik
                             enableReinitialize
                             initialValues={{
@@ -243,6 +265,8 @@ export class Main extends React.Component {
                                             from: new Date(yearStart, monthStart - 1, dayStart, hoursStart, minutesStart),
                                             to: new Date(yearStop, monthStop - 1, dayStop, hoursStop, minutesStop)};
                                         this.props.fetchClientPositions(token, payload);
+                                    } else if (selectedItem.eraseRoute){
+                                        this.props.clearClientPositions();
                                     }
                                     this.setState({show: false});
                                 } else {
@@ -280,14 +304,20 @@ export class Main extends React.Component {
                                         <div className="col-md-12">Prędkość średnia: {averageSpeed} km/h</div>
                                         <div className="col-md-12">Prędkość minimalna: {minSpeed} km/h</div>
                                         <div className="col-md-12">Dystans: {distance} km</div>
-                                        
                                     </div>                                       
+                                    </>}
+                                    {selectedItem.raport && positionsState.positions.length === 0 && <>
+                                        Brak danych do przeliczenia, wyznacz najpierw trase, która zawiera przynajmniej dwa punkty
+                                    </>}
+                                    {selectedItem.eraseRoute && <>
+                                        Czy na pewno chcesz wyczyścić trase na mapie?
                                     </>}
                                 </Modal.Body>
                                 <Modal.Footer>
-                                    {selectedItem.route && 
+                                    {!selectedItem.raport && 
                                     <Button type="submit" variant="primary" disabled={isSubmitting}>
-                                        Wyznacz
+                                        {selectedItem.route && "Wyznacz"}
+                                        {selectedItem.eraseRoute && "Wyczyść"}
                                     </Button>}
                                     <Button variant="secondary"  onClick={() => {this.handleClose()}}>Zamknij</Button>
                                 </Modal.Footer>
@@ -311,6 +341,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         fetchClientPositions: (token, payload) => dispatch(fetchClientPositions(token, payload)),
+        clearClientPositions: () => dispatch(clearClientPositions()),
         fetchClientVehicles: (token, clientId) => dispatch(fetchClientVehicles(token, clientId)),
         fetchClientDrivers: (token, clientId) => dispatch(fetchClientDrivers(token, clientId)),
         fetchClientDevices: (token, clientId) => dispatch(fetchClientDevices(token, clientId))

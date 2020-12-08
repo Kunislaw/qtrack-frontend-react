@@ -23,6 +23,11 @@ export const clientPositionsDataSuccess = (positions) => {
         positions: positions
     }
 }
+export const clearClientPositionsData = () => {
+    return {
+        type: "CLEAR_CLIENT_POSITIONS_DATA"
+    }
+}
 
 
 
@@ -50,5 +55,11 @@ export const fetchClientPositions = (token, payload) => {
             localStorage.removeItem("access_token");
             history.push("/");
         }
+    }
+}
+
+export const clearClientPositions = () => {
+    return async (dispatch) => {
+        dispatch(clearClientPositionsData());
     }
 }

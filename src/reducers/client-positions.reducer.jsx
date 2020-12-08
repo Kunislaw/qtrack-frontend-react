@@ -16,6 +16,9 @@ export const clientPositionsReducer = (state = INITIAL_STATE_CLIENT_POSITIONS_RE
 		case "CLIENT_POSITIONS_DATA_SUCCESS":{
             return {...state, positions: action.positions, isFetching: false, error: {operation: null, errorCode: null, message: null}};
         }
+        case "CLEAR_CLIENT_POSITIONS_DATA":{
+            return INITIAL_STATE_CLIENT_POSITIONS_REDUCER;
+        }
 		default:
 			return state;
 	}
