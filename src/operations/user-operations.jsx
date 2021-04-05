@@ -67,6 +67,7 @@ export const userLoginRequest = (url, body) => {
             localStorage.setItem("access_token", bodyJson.access_token);
             history.push("/user/home");
         }).catch((error) => {
+            console.error("ERROR", error)
             dispatch(userLoggingError(error));
         });
     }

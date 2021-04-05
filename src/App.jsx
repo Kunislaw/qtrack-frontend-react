@@ -43,5 +43,5 @@ class App extends React.Component {
     }
 }
 
-export let rootUrl = "http://gps-tracking.pl:2999";
+export let rootUrl = "https://api-traceeo.pl";
 export default App;

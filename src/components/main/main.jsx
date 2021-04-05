@@ -15,6 +15,7 @@ import { fetchClientVehicles } from '../../operations/client-vehicles-operations
 export class Main extends React.Component {
     mapRef = createRef();
     polylineRef = createRef();
+    intervalVehicles = null;
     constructor(props){
         super(props);
         this.state = {
@@ -22,7 +23,8 @@ export class Main extends React.Component {
             selectedItem: null,
             currentPage: 0,
             entriesPerPage: 15
-        }
+        };
+        this.intervalVehicles = null;
     }
     degToRad = (degress) => {
         const pi = Math.PI;
@@ -46,9 +48,14 @@ export class Main extends React.Component {
             this.props.fetchClientVehicles(token, clientId);
             this.props.fetchClientDrivers(token, clientId);
             this.props.fetchClientDevices(token, clientId);
+            this.intervalVehicles = setInterval(this.props.fetchClientVehicles, 5000, token, clientId);
         } else {
             history.push("/");
         }
+    }
+
+    componentWillUnmount(){
+        clearInterval(this.intervalVehicles);
     }
 
     selectOption = (item) => {
